@@ -4,7 +4,7 @@ import streamlit as st
 
 # ============================================================
 # BODYLAB | BMI & BODY ANALYTICS
-# Version 1.5.0
+# Version 1.6.0
 # Python + Streamlit
 # ============================================================
 
@@ -763,6 +763,138 @@ def get_bmi_tips(bmi):
 
 
 # ============================================================
+# 11. SILNIK SMART BODY ANALYSIS
+# ============================================================
+
+def get_smart_body_analysis(bmi, whtr_category, whr_category):
+    """
+    Łączy trzy wskaźniki w opisową analizę regułową.
+    Nie tworzy punktacji ryzyka ani diagnozy medycznej.
+    """
+    bmi_name = get_bmi_category(bmi)["name"]
+    whtr_limited = whtr_category["name"] == "Ograniczona interpretacja"
+    whtr_elevated = whtr_category["name"] in ("Podwyższony poziom", "Wysoki poziom")
+    whr_elevated = whr_category["name"] == "Wynik powyżej progu WHO"
+
+    if whtr_limited:
+        if whr_elevated:
+            title = "Wyniki wymagają szerszej oceny"
+            summary = (
+                "BMI znajduje się w zakresie, w którym warto przeprowadzić "
+                "indywidualną ocenę zdrowia. WHtR nie jest tu klasyfikowany "
+                "przez BODYLAB, a WHR osiąga próg stosowany w kryteriach WHO. "
+                "Nie należy wyciągać wniosków diagnostycznych z tych wskaźników."
+            )
+            pattern = "limited_whr_high"
+        else:
+            title = "Potrzebna jest indywidualna interpretacja"
+            summary = (
+                "Przy BMI równym lub wyższym niż 35 BODYLAB nie stosuje "
+                "standardowej interpretacji WHtR. Same wskaźniki nie wystarczą, "
+                "aby ocenić skład ciała ani indywidualne ryzyko zdrowotne."
+            )
+            pattern = "limited_whtr"
+    elif whtr_elevated and whr_elevated:
+        title = "Oba wskaźniki obwodowe wskazują na podwyższone wartości"
+        summary = (
+            "WHtR jest równy lub wyższy niż 0,50, a WHR osiąga próg "
+            "stosowany dla wybranej płci. To sygnał, aby omówić obwód talii "
+            "i pozostałe czynniki zdrowotne ze specjalistą. Nie jest to diagnoza."
+        )
+        pattern = "both_waist_high"
+    elif whtr_elevated or whr_elevated:
+        title = "Wyniki są częściowo rozbieżne"
+        if whtr_elevated:
+            summary = (
+                "WHtR osiąga co najmniej 0,50, natomiast WHR pozostaje "
+                "poniżej progu dla wybranej płci. Wskaźniki odnoszą się do "
+                "różnych proporcji ciała, dlatego nie muszą dawać identycznego "
+                "obrazu. Warto powtórzyć pomiary i ocenić je w szerszym kontekście."
+            )
+            pattern = "whtr_only_high"
+        else:
+            summary = (
+                "WHR osiąga próg stosowany dla wybranej płci, natomiast WHtR "
+                "pozostaje poniżej 0,50. Wskaźniki opisują różne proporcje "
+                "ciała i mogą się uzupełniać. Warto zweryfikować technikę "
+                "pomiaru oraz uwzględnić inne czynniki zdrowotne."
+            )
+            pattern = "whr_only_high"
+    elif bmi < 18.5:
+        title = "BMI poniżej standardowego zakresu"
+        summary = (
+            "BMI wskazuje na niedowagę, podczas gdy wskaźniki obwodowe "
+            "nie przekraczają zastosowanych progów. Warto zwrócić uwagę "
+            "na stabilność masy ciała, odżywienie i ewentualne niezamierzone "
+            "zmiany. Przy utrzymującej się lub niezamierzonej niskiej masie "
+            "warto skonsultować się ze specjalistą."
+        )
+        pattern = "low_bmi"
+    elif bmi < 25:
+        title = "Wskaźniki przedstawiają spójny obraz"
+        summary = (
+            "BMI mieści się w standardowym zakresie, a WHtR i WHR nie "
+            "przekraczają zastosowanych progów. To spójny obraz tych trzech "
+            "pomiarów, ale nie pełna ocena zdrowia ani składu ciała."
+        )
+        pattern = "all_within"
+    else:
+        title = "BMI i wskaźniki obwodowe warto rozpatrywać łącznie"
+        summary = (
+            f"{bmi_name} według BMI, przy jednoczesnym braku przekroczenia "
+            "progów WHtR i WHR. BMI nie rozróżnia tkanki tłuszczowej od "
+            "mięśniowej, dlatego znaczenie wyniku zależy m.in. od budowy ciała, "
+            "historii masy ciała i pozostałych parametrów zdrowotnych."
+        )
+        pattern = "bmi_high_waist_ok"
+
+    recommendations = {
+        "limited_whr_high": [
+            "Omów wyniki z lekarzem lub dietetykiem, uwzględniając całość stanu zdrowia.",
+            "Nie traktuj WHtR jako rozstrzygającego wskaźnika przy ograniczonej interpretacji.",
+            "Jeśli wykonujesz kolejne pomiary, zachowaj tę samą technikę i warunki."
+        ],
+        "limited_whtr": [
+            "Rozważ indywidualną ocenę parametrów zdrowotnych ze specjalistą.",
+            "Nie opieraj decyzji dotyczących masy ciała wyłącznie na BMI.",
+            "Uwzględnij historię masy ciała, obwody i inne parametry zdrowotne."
+        ],
+        "both_waist_high": [
+            "Powtórz pomiary talii i bioder, dbając o prawidłowe położenie miarki.",
+            "Omów wyniki oraz inne czynniki ryzyka z lekarzem lub dietetykiem.",
+            "Wspieraj zdrowie regularnym ruchem, snem i zbilansowanym odżywianiem."
+        ],
+        "whtr_only_high": [
+            "Sprawdź ponownie obwód talii oraz wzrost i porównaj pomiary wykonane tą samą metodą.",
+            "Pamiętaj, że WHtR i WHR opisują różne proporcje ciała.",
+            "Uwzględnij również aktywność, odżywianie i pozostałe parametry zdrowotne."
+        ],
+        "whr_only_high": [
+            "Powtórz pomiar talii i bioder, mierząc biodra w najszerszym miejscu.",
+            "Pamiętaj, że WHR i WHtR opisują różne proporcje ciała.",
+            "Jeśli wynik się utrzymuje, omów go ze specjalistą w szerszym kontekście."
+        ],
+        "low_bmi": [
+            "Obserwuj, czy masa ciała jest stabilna i czy jej spadek nie był niezamierzony.",
+            "Zwróć uwagę na regularność posiłków i odpowiednią podaż składników odżywczych.",
+            "Przy niezamierzonej utracie masy lub złym samopoczuciu skonsultuj się ze specjalistą."
+        ],
+        "all_within": [
+            "Utrzymuj regularną aktywność fizyczną dopasowaną do swoich możliwości.",
+            "Kontroluj pomiary okresowo, wykonując je w podobnych warunkach.",
+            "Traktuj wyniki jako część szerszego obrazu zdrowia, a nie jego pełną ocenę."
+        ],
+        "bmi_high_waist_ok": [
+            "Nie zakładaj automatycznie, że wyższe BMI oznacza nadmiar tkanki tłuszczowej.",
+            "Uwzględnij budowę ciała, poziom umięśnienia i historię zmian masy.",
+            "W razie wątpliwości rozważ profesjonalną ocenę składu ciała i parametrów zdrowotnych."
+        ]
+    }
+
+    return {"title": title, "summary": summary, "pattern": pattern, "recommendations": recommendations[pattern]}
+
+
+# ============================================================
 # 10. NAGŁÓWEK APLIKACJI
 # ============================================================
 
@@ -876,6 +1008,9 @@ if submitted:
     whtr_category = get_whtr_category(whtr, bmi)
     whr = calculate_whr(waist, hips)
     whr_category = get_whr_category(whr, sex)
+    smart_analysis = get_smart_body_analysis(
+        bmi, whtr_category, whr_category
+    )
 
     st.session_state["bmi_result"] = {
         "bmi": round(bmi, 2),
@@ -893,7 +1028,8 @@ if submitted:
         "whtr": round(whtr, 3),
         "whtr_category": whtr_category,
         "whr": round(whr, 3),
-        "whr_category": whr_category
+        "whr_category": whr_category,
+        "smart_analysis": smart_analysis
     }
 
 
@@ -1208,26 +1344,48 @@ if result:
 
 
     # ========================================================
-    # 17. ROZSZERZONA ANALIZA I INTERPRETACJA
+    # 17. SMART BODY ANALYSIS – WSPÓLNA INTERPRETACJA
     # ========================================================
+
+    smart = result["smart_analysis"]
 
     render_html("""
     <div class="section-title">
-        Analiza i interpretacja
+        Smart Body Analysis – wspólna interpretacja
     </div>
     """)
 
     render_html(f"""
     <div class="insight-card">
-
         <div class="insight-heading">
-            {category["name"]}
+            {smart["title"]}
         </div>
-
-        {result["insight"]}
-
+        {smart["summary"]}
     </div>
     """)
+
+    smart_cols = st.columns(3)
+    for index, recommendation in enumerate(smart["recommendations"]):
+        with smart_cols[index]:
+            render_html(f"""
+            <div class="tip-card">
+                <div class="tip-heading">Kolejny krok {index + 1}</div>
+                {recommendation}
+            </div>
+            """)
+
+    st.caption(
+        "Analiza regułowa BODYLAB zestawia wskaźniki, ale nie jest "
+        "zwalidowanym kalkulatorem ryzyka ani diagnozą medyczną."
+    )
+
+    with st.expander("Szczegółowa interpretacja BMI"):
+        render_html(f"""
+        <div class=\"insight-card\">
+            <div class=\"insight-heading\">{category["name"]}</div>
+            {result["insight"]}
+        </div>
+        """)
 
 
     # ========================================================
