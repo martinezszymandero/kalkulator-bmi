@@ -1016,17 +1016,41 @@ if "bodylab_user_id" not in st.session_state:
 
 # Nagłówek użytkownika i wylogowanie
 user_col, logout_col = st.columns([5, 1])
+
 with user_col:
-    st.caption(f"Zalogowano jako: {st.session_state.get('bodylab_user_email', '')}")
+    st.caption(
+        f"Zalogowano jako: "
+        f"{st.session_state.get('bodylab_user_email', '')}"
+    )
+
 with logout_col:
     if st.button("Wyloguj", use_container_width=True):
+
+        # Próba zakończenia sesji Supabase
         try:
             supabase_client.auth.sign_out()
         except Exception:
             pass
-        st.session_state.pop("bodylab_user_id", None)
-        st.session_state.pop("bodylab_user_email", None)
+
+        # Czyszczenie danych użytkownika i wyników analizy
+        session_keys_to_clear = [
+            "bodylab_user_id",
+            "bodylab_user_email",
+            "bmi_result",
+            "supabase_client",
+            "login_email",
+            "login_password",
+            "signup_email",
+            "signup_password",
+            "signup_confirm_password",
+        ]
+
+        for key in session_keys_to_clear:
+            st.session_state.pop(key, None)
+
+        # Powrót do ekranu logowania
         st.rerun()
+
 
 
 def fetch_measurement_history(client, user_id):
