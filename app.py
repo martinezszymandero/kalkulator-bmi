@@ -292,14 +292,10 @@ div.stFormSubmitButton > button:hover {
 
 def render_html(html):
     """
-    Usuwa zbędne wcięcia z HTML
-    i przekazuje kod do renderowania w Streamlit.
+    Renderuje HTML bezpośrednio w aplikacji Streamlit.
     """
 
-    st.markdown(
-        textwrap.dedent(html).strip(),
-        unsafe_allow_html=True
-    )
+    st.html(html)
 
 
 def format_number(value, decimals=2):
