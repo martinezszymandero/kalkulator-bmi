@@ -1,10 +1,14 @@
 
 import streamlit as st
+import pandas as pd
+import csv
+import io
+from datetime import datetime
 
 
 # ============================================================
 # BODYLAB | BMI & BODY ANALYTICS
-# Version 1.7.0
+# Version 1.8.0
 # Python + Streamlit
 # ============================================================
 
@@ -19,6 +23,10 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+
+# Historia jest przechowywana w sesji Streamlit. Użytkownik może ją wyeksportować do CSV.
+if "measurement_history" not in st.session_state:
+    st.session_state["measurement_history"] = []
 
 
 # ============================================================
@@ -1497,6 +1505,102 @@ if result:
         "ciąża, karmienie piersią, choroby przewlekłe i zaburzenia odżywiania."
     )
 
+    # ========================================================
+    # 19. PROGRESS TRACKER – HISTORIA POMIARÓW
+    # ========================================================
+
+    st.divider()
+    render_html("""
+    <div class="section-title">
+        Progress Tracker – historia i postępy
+    </div>
+    """)
+
+    st.caption(
+        "Zapisz aktualny zestaw wyników, aby porównać go z kolejnymi pomiarami. "
+        "Historia w tej wersji jest przechowywana tylko w bieżącej sesji aplikacji. "
+        "Pobierz CSV, aby zachować kopię danych."
+    )
+
+    if st.button("ZAPISZ AKTUALNY POMIAR", type="primary", use_container_width=True):
+        saved_at = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z")
+        snapshot = {
+            "Data zapisu": saved_at,
+            "Masa ciała (kg)": round(float(result["weight"]), 2),
+            "Wzrost (cm)": round(float(result["height"]), 1),
+            "Obwód talii (cm)": round(float(result["waist"]), 1),
+            "Obwód bioder (cm)": round(float(result["hips"]), 1),
+            "BMI": round(float(result["bmi"]), 2),
+            "WHtR": round(float(result["whtr"]), 3),
+            "WHR": round(float(result["whr"]), 3),
+            "Płeć": result["sex"],
+            "Wiek (lata)": int(result["age"]),
+            "BMR (kcal/dzień)": int(result["bmr"]),
+            "TDEE (kcal/dzień)": int(result["tdee"]),
+            "Cel energetyczny": result["goal"],
+            "Cel kaloryczny (kcal/dzień)": int(result["calorie_target"]),
+            "Poziom aktywności": result["activity_level"],
+        }
+        st.session_state["measurement_history"].append(snapshot)
+        st.success("Pomiar został zapisany w historii bieżącej sesji.")
+
+    history = st.session_state["measurement_history"]
+
+    if history:
+        history_df = pd.DataFrame(history)
+        st.markdown(f"**Liczba zapisanych pomiarów: {len(history)}**")
+
+        if len(history) >= 2:
+            first = history[0]
+            latest = history[-1]
+            comparison_cols = st.columns(3)
+            comparisons = [
+                ("Zmiana masy", latest["Masa ciała (kg)"] - first["Masa ciała (kg)"], "kg"),
+                ("Zmiana obwodu talii", latest["Obwód talii (cm)"] - first["Obwód talii (cm)"], "cm"),
+                ("Zmiana BMI", latest["BMI"] - first["BMI"], "pkt"),
+            ]
+            for col, (label, delta, unit) in zip(comparison_cols, comparisons):
+                with col:
+                    st.metric(label, f"{delta:+.2f} {unit}", help="Porównanie ostatniego zapisu z pierwszym.")
+
+            st.caption("Zmiana jest obliczana względem pierwszego zapisanego pomiaru, a nie względem poprzedniego.")
+
+            st.markdown("**Trend masy ciała**")
+            weight_chart = history_df[["Data zapisu", "Masa ciała (kg)"]].copy()
+            weight_chart = weight_chart.set_index("Data zapisu")
+            st.line_chart(weight_chart)
+
+            st.markdown("**Trend BMI**")
+            bmi_chart = history_df[["Data zapisu", "BMI"]].copy().set_index("Data zapisu")
+            st.line_chart(bmi_chart)
+
+            st.markdown("**Trend obwodu talii**")
+            waist_chart = history_df[["Data zapisu", "Obwód talii (cm)"]].copy().set_index("Data zapisu")
+            st.line_chart(waist_chart)
+        else:
+            st.info("Zapisz co najmniej dwa pomiary, aby zobaczyć wykresy trendu i porównanie zmian.")
+
+        with st.expander("Zobacz tabelę zapisanych pomiarów"):
+            st.dataframe(history_df, use_container_width=True, hide_index=True)
+
+        csv_buffer = io.StringIO()
+        history_df.to_csv(csv_buffer, index=False, sep=";", decimal=",")
+        st.download_button(
+            "POBIERZ HISTORIĘ POMIARÓW (CSV)",
+            data="\ufeff" + csv_buffer.getvalue(),
+            file_name="bodylab_historia_pomiarow.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+    else:
+        st.info("Nie zapisano jeszcze żadnego pomiaru. Kliknij przycisk powyżej, aby rozpocząć historię.")
+
+    st.caption(
+        "Ważne: historia jest tymczasowa i może zostać utracona po zakończeniu sesji, "
+        "ponownym uruchomieniu lub wdrożeniu aplikacji. CSV pozwala zachować własną kopię. "
+        "Trwała synchronizacja między sesjami będzie wymagała zewnętrznej bazy danych."
+    )
+
     with st.expander("Jak interpretować BMR i TDEE?"):
         st.markdown(
             "**BMR** to szacunkowa ilość energii potrzebna organizmowi "
@@ -1518,7 +1622,7 @@ if result:
 
 
     # ========================================================
-    # 18. INTELIGENTNE WSKAZÓWKI
+    # 20. INTELIGENTNE WSKAZÓWKI
     # ========================================================
 
     render_html("""
@@ -1547,7 +1651,7 @@ if result:
 
 
     # ========================================================
-    # 19. OGRANICZENIA I POMIARY
+    # 21. OGRANICZENIA I POMIARY
     # ========================================================
 
     with st.expander("Dowiedz się więcej o wskaźniku BMI"):
@@ -1632,7 +1736,7 @@ if result:
 
 
 # ============================================================
-# 20. STOPKA
+# 22. STOPKA
 # ============================================================
 
 st.divider()
