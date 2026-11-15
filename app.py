@@ -4,11 +4,12 @@ import pandas as pd
 import csv
 import io
 from datetime import datetime
+from supabase import create_client
 
 
 # ============================================================
 # BODYLAB | BMI & BODY ANALYTICS
-# Version 1.8.0
+# Version 1.9.0
 # Python + Streamlit
 # ============================================================
 
@@ -24,9 +25,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Historia jest przechowywana w sesji Streamlit. Użytkownik może ją wyeksportować do CSV.
-if "measurement_history" not in st.session_state:
-    st.session_state["measurement_history"] = []
 
 
 # ============================================================
@@ -936,6 +934,138 @@ def calculate_calorie_target(tdee, goal):
 
 
 # ============================================================
+# 10. SUPABASE – POŁĄCZENIE I UWIERZYTELNIANIE
+# ============================================================
+
+def get_supabase_client():
+    """Tworzy klienta Supabase raz na sesję Streamlit."""
+    if "supabase_client" not in st.session_state:
+        try:
+            url = st.secrets["SUPABASE_URL"]
+            key = st.secrets["SUPABASE_KEY"]
+        except Exception as exc:
+            st.error("Brakuje konfiguracji SUPABASE_URL lub SUPABASE_KEY w Streamlit Secrets.")
+            st.stop()
+        st.session_state["supabase_client"] = create_client(url, key)
+    return st.session_state["supabase_client"]
+
+
+def render_auth_screen(client):
+    """Ekran logowania i rejestracji BODYLAB."""
+    st.markdown("""<div class="brand">🧬 BODY<span class="brand-accent">LAB</span></div>
+    <div class="subtitle">BODY COMPOSITION & HEALTH ANALYTICS</div>""", unsafe_allow_html=True)
+    st.divider()
+    st.markdown("### Dostęp do BODYLAB")
+    st.caption("Zaloguj się, aby korzystać z kalkulatora i swojej prywatnej historii pomiarów.")
+    login_tab, signup_tab = st.tabs(["Logowanie", "Utwórz konto"])
+
+    with login_tab:
+        with st.form("bodylab_login_form"):
+            email = st.text_input("Adres e-mail", key="login_email")
+            password = st.text_input("Hasło", type="password", key="login_password")
+            submitted = st.form_submit_button("ZALOGUJ SIĘ", type="primary", use_container_width=True)
+        if submitted:
+            if not email.strip() or not password:
+                st.warning("Wpisz adres e-mail i hasło.")
+            else:
+                try:
+                    response = client.auth.sign_in_with_password({"email": email.strip(), "password": password})
+                    user = response.user
+                    if user is None:
+                        st.error("Nie udało się uzyskać danych zalogowanego użytkownika.")
+                    else:
+                        st.session_state["bodylab_user_id"] = user.id
+                        st.session_state["bodylab_user_email"] = user.email
+                        st.rerun()
+                except Exception:
+                    st.error("Logowanie nie powiodło się. Sprawdź adres e-mail, hasło i potwierdzenie adresu e-mail.")
+
+    with signup_tab:
+        with st.form("bodylab_signup_form"):
+            new_email = st.text_input("Adres e-mail", key="signup_email")
+            new_password = st.text_input("Hasło", type="password", key="signup_password")
+            confirm_password = st.text_input("Powtórz hasło", type="password", key="signup_confirm_password")
+            signup = st.form_submit_button("UTWÓRZ KONTO", type="primary", use_container_width=True)
+        if signup:
+            if not new_email.strip() or not new_password:
+                st.warning("Wpisz adres e-mail i hasło.")
+            elif len(new_password) < 8:
+                st.warning("Hasło powinno mieć co najmniej 8 znaków.")
+            elif new_password != confirm_password:
+                st.warning("Podane hasła nie są identyczne.")
+            else:
+                try:
+                    response = client.auth.sign_up({"email": new_email.strip(), "password": new_password})
+                    if response.session is None:
+                        st.success("Konto zostało utworzone. Sprawdź skrzynkę e-mail i potwierdź adres, a następnie zaloguj się.")
+                    else:
+                        st.success("Konto utworzone. Możesz już korzystać z BODYLAB.")
+                        st.rerun()
+                except Exception:
+                    st.error("Nie udało się utworzyć konta. Sprawdź adres e-mail i spróbuj ponownie.")
+
+    st.caption("Twoje pomiary są przypisywane do konta i chronione regułami RLS w bazie danych.")
+
+
+supabase_client = get_supabase_client()
+
+if "bodylab_user_id" not in st.session_state:
+    render_auth_screen(supabase_client)
+    st.stop()
+
+# Nagłówek użytkownika i wylogowanie
+user_col, logout_col = st.columns([5, 1])
+with user_col:
+    st.caption(f"Zalogowano jako: {st.session_state.get('bodylab_user_email', '')}")
+with logout_col:
+    if st.button("Wyloguj", use_container_width=True):
+        try:
+            supabase_client.auth.sign_out()
+        except Exception:
+            pass
+        st.session_state.pop("bodylab_user_id", None)
+        st.session_state.pop("bodylab_user_email", None)
+        st.rerun()
+
+
+def fetch_measurement_history(client, user_id):
+    """Pobiera wyłącznie pomiary bieżącego użytkownika (RLS jest dodatkową ochroną)."""
+    response = (client.table("measurements")
+                .select("id, created_at, weight, height, waist, hips, sex, age, bmi, whtr, whr, bmr, tdee, calorie_target, goal, activity_level")
+                .eq("user_id", user_id)
+                .order("created_at", desc=False)
+                .execute())
+    return response.data or []
+
+
+def measurement_to_display(row):
+    """Mapuje rekord bazy na dotychczasowe polskie etykiety historii."""
+    created = row.get("created_at", "")
+    if created:
+        try:
+            created = datetime.fromisoformat(created.replace("Z", "+00:00")).astimezone().strftime("%Y-%m-%d %H:%M:%S %z")
+        except Exception:
+            pass
+    return {
+        "Data zapisu": created,
+        "Masa ciała (kg)": float(row["weight"]),
+        "Wzrost (cm)": float(row["height"]),
+        "Obwód talii (cm)": float(row["waist"]),
+        "Obwód bioder (cm)": float(row["hips"]),
+        "BMI": float(row["bmi"]),
+        "WHtR": float(row["whtr"]),
+        "WHR": float(row["whr"]),
+        "Płeć": row["sex"],
+        "Wiek (lata)": int(row["age"]),
+        "BMR (kcal/dzień)": int(row["bmr"]),
+        "TDEE (kcal/dzień)": int(row["tdee"]),
+        "Cel energetyczny": row["goal"],
+        "Cel kaloryczny (kcal/dzień)": int(row["calorie_target"]),
+        "Poziom aktywności": row["activity_level"],
+    }
+
+
+# ============================================================
 # 10. NAGŁÓWEK APLIKACJI
 # ============================================================
 
@@ -1506,53 +1636,52 @@ if result:
     )
 
     # ========================================================
-    # 19. PROGRESS TRACKER – HISTORIA POMIARÓW
+    # 19. PROGRESS TRACKER – HISTORIA POMIARÓW (SUPABASE)
     # ========================================================
 
     st.divider()
     render_html("""
-    <div class="section-title">
-        Progress Tracker – historia i postępy
-    </div>
+    <div class="section-title">Progress Tracker – historia i postępy</div>
     """)
-
-    st.caption(
-        "Zapisz aktualny zestaw wyników, aby porównać go z kolejnymi pomiarami. "
-        "Historia w tej wersji jest przechowywana tylko w bieżącej sesji aplikacji. "
-        "Pobierz CSV, aby zachować kopię danych."
-    )
+    st.caption("Pomiary są zapisywane na Twoim koncie BODYLAB i pozostają dostępne po ponownym zalogowaniu.")
 
     if st.button("ZAPISZ AKTUALNY POMIAR", type="primary", use_container_width=True):
-        saved_at = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z")
         snapshot = {
-            "Data zapisu": saved_at,
-            "Masa ciała (kg)": round(float(result["weight"]), 2),
-            "Wzrost (cm)": round(float(result["height"]), 1),
-            "Obwód talii (cm)": round(float(result["waist"]), 1),
-            "Obwód bioder (cm)": round(float(result["hips"]), 1),
-            "BMI": round(float(result["bmi"]), 2),
-            "WHtR": round(float(result["whtr"]), 3),
-            "WHR": round(float(result["whr"]), 3),
-            "Płeć": result["sex"],
-            "Wiek (lata)": int(result["age"]),
-            "BMR (kcal/dzień)": int(result["bmr"]),
-            "TDEE (kcal/dzień)": int(result["tdee"]),
-            "Cel energetyczny": result["goal"],
-            "Cel kaloryczny (kcal/dzień)": int(result["calorie_target"]),
-            "Poziom aktywności": result["activity_level"],
+            "weight": round(float(result["weight"]), 2),
+            "height": round(float(result["height"]), 1),
+            "waist": round(float(result["waist"]), 1),
+            "hips": round(float(result["hips"]), 1),
+            "sex": result["sex"],
+            "age": int(result["age"]),
+            "bmi": round(float(result["bmi"]), 2),
+            "whtr": round(float(result["whtr"]), 3),
+            "whr": round(float(result["whr"]), 3),
+            "bmr": int(result["bmr"]),
+            "tdee": int(result["tdee"]),
+            "calorie_target": int(result["calorie_target"]),
+            "goal": result["goal"],
+            "activity_level": result["activity_level"],
         }
-        st.session_state["measurement_history"].append(snapshot)
-        st.success("Pomiar został zapisany w historii bieżącej sesji.")
+        try:
+            supabase_client.table("measurements").insert(snapshot).execute()
+            st.success("Pomiar został trwale zapisany na Twoim koncie.")
+            st.rerun()
+        except Exception:
+            st.error("Nie udało się zapisać pomiaru. Sprawdź połączenie i uprawnienia bazy danych.")
 
-    history = st.session_state["measurement_history"]
+    try:
+        db_history = fetch_measurement_history(supabase_client, st.session_state["bodylab_user_id"])
+    except Exception:
+        db_history = []
+        st.error("Nie udało się pobrać historii z Supabase. Spróbuj odświeżyć aplikację.")
 
-    if history:
-        history_df = pd.DataFrame(history)
-        st.markdown(f"**Liczba zapisanych pomiarów: {len(history)}**")
+    if db_history:
+        history_df = pd.DataFrame([measurement_to_display(row) for row in db_history])
+        st.markdown(f"**Liczba zapisanych pomiarów: {len(db_history)}**")
 
-        if len(history) >= 2:
-            first = history[0]
-            latest = history[-1]
+        if len(db_history) >= 2:
+            first = history_df.iloc[0]
+            latest = history_df.iloc[-1]
             comparison_cols = st.columns(3)
             comparisons = [
                 ("Zmiana masy", latest["Masa ciała (kg)"] - first["Masa ciała (kg)"], "kg"),
@@ -1562,21 +1691,13 @@ if result:
             for col, (label, delta, unit) in zip(comparison_cols, comparisons):
                 with col:
                     st.metric(label, f"{delta:+.2f} {unit}", help="Porównanie ostatniego zapisu z pierwszym.")
-
             st.caption("Zmiana jest obliczana względem pierwszego zapisanego pomiaru, a nie względem poprzedniego.")
-
             st.markdown("**Trend masy ciała**")
-            weight_chart = history_df[["Data zapisu", "Masa ciała (kg)"]].copy()
-            weight_chart = weight_chart.set_index("Data zapisu")
-            st.line_chart(weight_chart)
-
+            st.line_chart(history_df.set_index("Data zapisu")[["Masa ciała (kg)"]])
             st.markdown("**Trend BMI**")
-            bmi_chart = history_df[["Data zapisu", "BMI"]].copy().set_index("Data zapisu")
-            st.line_chart(bmi_chart)
-
+            st.line_chart(history_df.set_index("Data zapisu")[["BMI"]])
             st.markdown("**Trend obwodu talii**")
-            waist_chart = history_df[["Data zapisu", "Obwód talii (cm)"]].copy().set_index("Data zapisu")
-            st.line_chart(waist_chart)
+            st.line_chart(history_df.set_index("Data zapisu")[["Obwód talii (cm)"]])
         else:
             st.info("Zapisz co najmniej dwa pomiary, aby zobaczyć wykresy trendu i porównanie zmian.")
 
@@ -1592,14 +1713,29 @@ if result:
             mime="text/csv",
             use_container_width=True
         )
+
+        with st.expander("Usuń zapisany pomiar"):
+            delete_options = {
+                f"{row.get('created_at', '')[:19]} | {row.get('weight')} kg | BMI {row.get('bmi')}": row["id"]
+                for row in reversed(db_history)
+            }
+            selected_label = st.selectbox("Wybierz pomiar do usunięcia", list(delete_options.keys()))
+            confirm_delete = st.checkbox("Potwierdzam, że chcę trwale usunąć wybrany pomiar.")
+            if st.button("USUŃ WYBRANY POMIAR", disabled=not confirm_delete):
+                try:
+                    (supabase_client.table("measurements")
+                     .delete()
+                     .eq("id", delete_options[selected_label])
+                     .eq("user_id", st.session_state["bodylab_user_id"])
+                     .execute())
+                    st.success("Pomiar został usunięty.")
+                    st.rerun()
+                except Exception:
+                    st.error("Nie udało się usunąć pomiaru.")
     else:
         st.info("Nie zapisano jeszcze żadnego pomiaru. Kliknij przycisk powyżej, aby rozpocząć historię.")
 
-    st.caption(
-        "Ważne: historia jest tymczasowa i może zostać utracona po zakończeniu sesji, "
-        "ponownym uruchomieniu lub wdrożeniu aplikacji. CSV pozwala zachować własną kopię. "
-        "Trwała synchronizacja między sesjami będzie wymagała zewnętrznej bazy danych."
-    )
+    st.caption("Historia jest przechowywana w bazie Supabase. Dostęp do rekordów jest dodatkowo ograniczony politykami RLS do zalogowanego użytkownika.")
 
     with st.expander("Jak interpretować BMR i TDEE?"):
         st.markdown(
