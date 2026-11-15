@@ -166,7 +166,7 @@
 
     const recoveryLink = window.location.hash.includes("type=recovery");
 
-    const supabase = window.supabase.createClient(
+    const supabaseClient = window.supabase.createClient(
       SUPABASE_URL,
       SUPABASE_KEY,
       {
@@ -203,7 +203,7 @@
       resetForm.classList.remove("hidden");
     }
 
-    supabase.auth.onAuthStateChange((event, session) => {
+    supabaseClient.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY" && session) {
         showResetForm();
       }
@@ -218,7 +218,7 @@
       // Dajemy bibliotece Supabase czas na obsłużenie tokenu z linku.
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      const { data, error } = await supabase.auth.getSession();
+      const { data, error } = await supabaseClient.auth.getSession();
 
       if (error || !data.session) {
         showError("Link jest nieprawidłowy lub wygasł. Poproś o nowy link odzyskiwania hasła.");
@@ -250,7 +250,7 @@
       button.disabled = true;
       button.textContent = "Zapisywanie...";
 
-      const { error } = await supabase.auth.updateUser({
+      const { error } = await supabaseClient.auth.updateUser({
         password: password
       });
 
