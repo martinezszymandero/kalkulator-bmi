@@ -1,0 +1,272 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BODYLAB – Odzyskiwanie hasła</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: #10141c;
+      color: #f1f3f6;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      padding: 35px;
+      background: #1b222e;
+      border: 1px solid #303a49;
+      border-radius: 16px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      letter-spacing: 2px;
+    }
+
+    .subtitle {
+      color: #aab4c3;
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      margin: 16px 0 8px;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #465366;
+      border-radius: 8px;
+      background: #111823;
+      color: white;
+      font-size: 15px;
+    }
+
+    button, .return-link {
+      display: block;
+      width: 100%;
+      margin-top: 22px;
+      padding: 14px;
+      border: 0;
+      border-radius: 8px;
+      background: #35a7e8;
+      color: #08131d;
+      font-weight: bold;
+      font-size: 15px;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: wait;
+    }
+
+    #message {
+      margin-top: 18px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #c5d0dd;
+    }
+
+    .hidden { display: none; }
+
+    .brand {
+      color: #35a7e8;
+      font-size: 12px;
+      letter-spacing: 3px;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <div class="brand">BODY ANALYTICS</div>
+    <h1>BODYLAB</h1>
+    <p class="subtitle">Odzyskiwanie dostępu do konta</p>
+
+    <section id="loading">
+      Weryfikujemy link odzyskiwania hasła...
+    </section>
+
+    <section id="reset-form" class="hidden">
+      <p>Ustaw nowe hasło do swojego konta BODYLAB.</p>
+
+      <form id="password-form">
+        <label for="password">Nowe hasło</label>
+        <input
+          type="password"
+          id="password"
+          minlength="8"
+          autocomplete="new-password"
+          required
+          placeholder="Minimum 8 znaków"
+        >
+
+        <label for="confirm-password">Powtórz nowe hasło</label>
+        <input
+          type="password"
+          id="confirm-password"
+          minlength="8"
+          autocomplete="new-password"
+          required
+          placeholder="Wpisz hasło ponownie"
+        >
+
+        <button id="submit-button" type="submit">
+          Zapisz nowe hasło
+        </button>
+      </form>
+    </section>
+
+    <section id="success" class="hidden">
+      <h2>Hasło zostało zmienione!</h2>
+      <p>Możesz teraz wrócić do BODYLAB i zalogować się nowym hasłem.</p>
+      <a class="return-link" href="https://bodylab-test.streamlit.app/">
+        Wróć do BODYLAB
+      </a>
+    </section>
+
+    <section id="error" class="hidden">
+      <h2>Nie udało się zweryfikować linku</h2>
+      <p id="error-message">
+        Link może być nieprawidłowy lub wygasł.
+      </p>
+      <a class="return-link" href="https://bodylab-test.streamlit.app/">
+        Wróć do BODYLAB
+      </a>
+    </section>
+
+    <div id="message" role="status" aria-live="polite"></div>
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://ebdotalnjfefhcmbbiib.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_ZlfU372tqiL8yJQtFQql0A_URjtNb2t";
+
+    const recoveryLink = window.location.hash.includes("type=recovery");
+
+    const supabase = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY,
+      {
+        auth: {
+          flowType: "implicit",
+          detectSessionInUrl: true,
+          persistSession: true,
+          autoRefreshToken: true
+        }
+      }
+    );
+
+    const loading = document.getElementById("loading");
+    const resetForm = document.getElementById("reset-form");
+    const success = document.getElementById("success");
+    const errorSection = document.getElementById("error");
+    const errorMessage = document.getElementById("error-message");
+    const message = document.getElementById("message");
+
+    let recoveryReady = false;
+
+    function showError(text) {
+      loading.classList.add("hidden");
+      resetForm.classList.add("hidden");
+      errorSection.classList.remove("hidden");
+      errorMessage.textContent = text;
+    }
+
+    function showResetForm() {
+      if (recoveryReady) return;
+
+      recoveryReady = true;
+      loading.classList.add("hidden");
+      resetForm.classList.remove("hidden");
+    }
+
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" && session) {
+        showResetForm();
+      }
+    });
+
+    async function initialize() {
+      if (!recoveryLink) {
+        showError("Otwórz stronę za pomocą aktualnego linku otrzymanego w wiadomości e-mail.");
+        return;
+      }
+
+      // Dajemy bibliotece Supabase czas na obsłużenie tokenu z linku.
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const { data, error } = await supabase.auth.getSession();
+
+      if (error || !data.session) {
+        showError("Link jest nieprawidłowy lub wygasł. Poproś o nowy link odzyskiwania hasła.");
+        return;
+      }
+
+      showResetForm();
+    }
+
+    document.getElementById("password-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const password = document.getElementById("password").value;
+      const confirmation = document.getElementById("confirm-password").value;
+      const button = document.getElementById("submit-button");
+
+      message.textContent = "";
+
+      if (password.length < 8) {
+        message.textContent = "Hasło musi mieć co najmniej 8 znaków.";
+        return;
+      }
+
+      if (password !== confirmation) {
+        message.textContent = "Wpisane hasła nie są identyczne.";
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = "Zapisywanie...";
+
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      });
+
+      if (error) {
+        button.disabled = false;
+        button.textContent = "Zapisz nowe hasło";
+        message.textContent = "Nie udało się zmienić hasła: " + error.message;
+        return;
+      }
+
+      resetForm.classList.add("hidden");
+      success.classList.remove("hidden");
+      message.textContent = "";
+    });
+
+    initialize();
+  </script>
+</body>
+</html>
