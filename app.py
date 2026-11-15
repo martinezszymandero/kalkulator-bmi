@@ -1,11 +1,10 @@
 
 import streamlit as st
-import textwrap
 
 
 # ============================================================
 # BODYLAB | BMI & BODY ANALYTICS
-# Version 1.1
+# Version 1.3.0
 # Python + Streamlit
 # ============================================================
 
@@ -29,8 +28,6 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-/* GŁÓWNE TŁO */
-
 .stApp {
     background-color: #F3F6FA;
     color: #172B45;
@@ -41,8 +38,6 @@ st.markdown("""
     padding-top: 2rem;
     padding-bottom: 3rem;
 }
-
-/* UKRYCIE ELEMENTÓW STREAMLIT */
 
 #MainMenu,
 footer {
@@ -73,7 +68,7 @@ header[data-testid="stHeader"] {
     margin-bottom: 25px;
 }
 
-/* NAGŁÓWKI SEKCJI */
+/* NAGŁÓWKI */
 
 .section-title {
     font-size: 21px;
@@ -83,7 +78,7 @@ header[data-testid="stHeader"] {
     margin-bottom: 15px;
 }
 
-/* KARTY WYNIKÓW */
+/* KARTY */
 
 .metric-card,
 .result-card {
@@ -106,15 +101,16 @@ header[data-testid="stHeader"] {
 
 .metric-value {
     color: #142D4E;
-    font-size: 34px;
+    font-size: 30px;
     font-weight: 800;
-    margin-top: 12px;
+    margin-top: 15px;
 }
 
 .metric-description {
     color: #8492A6;
     font-size: 12px;
-    margin-top: 5px;
+    margin-top: 8px;
+    line-height: 1.5;
 }
 
 .bmi-number {
@@ -145,7 +141,6 @@ header[data-testid="stHeader"] {
     height: 15px;
     border-radius: 20px;
     position: relative;
-
     background: linear-gradient(
         to right,
         #60A5FA 0%,
@@ -194,7 +189,7 @@ header[data-testid="stHeader"] {
     transform: translateX(-100%);
 }
 
-/* KOMENTARZ ANALITYCZNY */
+/* ANALIZA */
 
 .insight-card {
     background: #FFFFFF;
@@ -212,6 +207,24 @@ header[data-testid="stHeader"] {
     font-weight: 750;
     font-size: 16px;
     margin-bottom: 10px;
+}
+
+.tip-card {
+    background: #FFFFFF;
+    border: 1px solid #E5EAF1;
+    border-radius: 12px;
+    padding: 18px;
+    height: 100%;
+    color: #43546A;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.tip-heading {
+    color: #142D4E;
+    font-weight: 750;
+    font-size: 14px;
+    margin-bottom: 8px;
 }
 
 /* INFORMACJE EDUKACYJNE */
@@ -273,7 +286,7 @@ div.stFormSubmitButton > button:hover {
     }
 
     .metric-value {
-        font-size: 28px;
+        font-size: 25px;
     }
 
     .result-card,
@@ -291,19 +304,18 @@ div.stFormSubmitButton > button:hover {
 # ============================================================
 
 def render_html(html):
-    """
-    Renderuje HTML bezpośrednio w aplikacji Streamlit.
-    """
-
+    """Renderuje HTML w aplikacji Streamlit."""
     st.html(html)
 
 
 def format_number(value, decimals=2):
-    """
-    Formatuje liczby z polskim separatorem dziesiętnym.
-    """
-
-    return f"{value:,.{decimals}f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    """Formatuje liczby z polskim separatorem dziesiętnym."""
+    return (
+        f"{value:,.{decimals}f}"
+        .replace(",", "X")
+        .replace(".", ",")
+        .replace("X", ".")
+    )
 
 
 # ============================================================
@@ -311,15 +323,9 @@ def format_number(value, decimals=2):
 # ============================================================
 
 def calculate_bmi(weight, height_cm):
-    """
-    Oblicza BMI.
-
-    weight – masa ciała w kg
-    height_cm – wzrost w cm
-    """
+    """Oblicza BMI na podstawie masy i wzrostu."""
 
     height_m = height_cm / 100
-
     return weight / (height_m ** 2)
 
 
@@ -328,23 +334,19 @@ def calculate_bmi(weight, height_cm):
 # ============================================================
 
 def get_bmi_category(bmi):
-    """
-    Klasyfikacja BMI dla osób dorosłych.
-    """
+    """Klasyfikacja BMI dla osób dorosłych."""
 
     if bmi < 16:
-
         return {
             "name": "Znaczna niedowaga",
             "color": "#2563EB",
             "description": (
-                "Wynik znajduje się znacznie poniżej "
-                "standardowego zakresu BMI."
+                "BMI znajduje się znacznie poniżej "
+                "standardowego zakresu."
             )
         }
 
     elif bmi < 17:
-
         return {
             "name": "Umiarkowana niedowaga",
             "color": "#3B82F6",
@@ -354,17 +356,16 @@ def get_bmi_category(bmi):
         }
 
     elif bmi < 18.5:
-
         return {
             "name": "Łagodna niedowaga",
             "color": "#60A5FA",
             "description": (
-                "Wynik wskazuje na niedowagę."
+                "Wynik wskazuje na niedowagę "
+                "według klasyfikacji BMI."
             )
         }
 
     elif bmi < 25:
-
         return {
             "name": "Masa prawidłowa",
             "color": "#059669",
@@ -375,7 +376,6 @@ def get_bmi_category(bmi):
         }
 
     elif bmi < 30:
-
         return {
             "name": "Nadwaga",
             "color": "#D97706",
@@ -386,35 +386,29 @@ def get_bmi_category(bmi):
         }
 
     elif bmi < 35:
-
         return {
             "name": "Otyłość I stopnia",
             "color": "#EA580C",
             "description": (
-                "Wynik wskazuje na otyłość I stopnia "
-                "według klasyfikacji BMI."
+                "Wynik wskazuje na otyłość I stopnia."
             )
         }
 
     elif bmi < 40:
-
         return {
             "name": "Otyłość II stopnia",
             "color": "#DC2626",
             "description": (
-                "Wynik wskazuje na otyłość II stopnia "
-                "według klasyfikacji BMI."
+                "Wynik wskazuje na otyłość II stopnia."
             )
         }
 
     else:
-
         return {
             "name": "Otyłość III stopnia",
             "color": "#991B1B",
             "description": (
-                "Wynik wskazuje na otyłość III stopnia "
-                "według klasyfikacji BMI."
+                "Wynik wskazuje na otyłość III stopnia."
             )
         }
 
@@ -425,7 +419,7 @@ def get_bmi_category(bmi):
 
 def calculate_healthy_weight(height_cm):
     """
-    Oblicza zakres masy odpowiadający BMI 18.5–24.9.
+    Oblicza zakres masy odpowiadający BMI 18,5–24,9.
     """
 
     height_m = height_cm / 100
@@ -437,39 +431,220 @@ def calculate_healthy_weight(height_cm):
 
 
 # ============================================================
-# 7. INTERPRETACJA WYNIKÓW
+# 7. ANALIZA RÓŻNICY MASY CIAŁA
+# ============================================================
+
+def calculate_weight_difference(weight, min_weight, max_weight):
+    """
+    Określa odległość aktualnej masy od zakresu
+    odpowiadającego BMI 18,5–24,9.
+    """
+
+    if weight < min_weight:
+        difference = min_weight - weight
+
+        return {
+            "value": difference,
+            "direction": "poniżej",
+            "description": (
+                "Tyle kilogramów dzieli aktualną masę "
+                "od dolnej granicy zakresu BMI 18,5–24,9."
+            )
+        }
+
+    elif weight > max_weight:
+        difference = weight - max_weight
+
+        return {
+            "value": difference,
+            "direction": "powyżej",
+            "description": (
+                "Tyle kilogramów dzieli aktualną masę "
+                "od górnej granicy zakresu BMI 18,5–24,9."
+            )
+        }
+
+    else:
+        return {
+            "value": 0,
+            "direction": "w zakresie",
+            "description": (
+                "Aktualna masa mieści się w zakresie "
+                "odpowiadającym BMI 18,5–24,9."
+            )
+        }
+
+
+# ============================================================
+# 8. ROZSZERZONA INTERPRETACJA BMI
 # ============================================================
 
 def get_bmi_insight(bmi):
 
-    if bmi < 18.5:
-
+    if bmi < 16:
         return (
-            "Warto przyjrzeć się podaży energii i składników "
-            "odżywczych. Jeżeli niska masa ciała jest "
-            "niezamierzona, warto skonsultować ją "
-            "ze specjalistą."
+            "Wynik znajduje się w zakresie znacznej niedowagi. "
+            "Tak niskie BMI może wiązać się ze zwiększonym "
+            "ryzykiem niedożywienia i innych problemów zdrowotnych. "
+            "Warto skonsultować wynik z lekarzem, szczególnie "
+            "jeśli niska masa ciała pojawiła się niezamierzenie."
+        )
+
+    elif bmi < 17:
+        return (
+            "BMI wskazuje na umiarkowaną niedowagę. Warto "
+            "przyjrzeć się zmianom masy ciała, sposobowi "
+            "odżywiania i ogólnemu samopoczuciu. Jeśli masa "
+            "spada bez wyraźnej przyczyny, wskazana jest "
+            "konsultacja ze specjalistą."
+        )
+
+    elif bmi < 18.5:
+        return (
+            "Wynik wskazuje na łagodną niedowagę. Warto ocenić, "
+            "czy aktualna masa ciała jest stabilna oraz czy "
+            "dieta dostarcza odpowiedniej ilości energii "
+            "i składników odżywczych."
         )
 
     elif bmi < 25:
-
         return (
             "Wynik mieści się w standardowym zakresie BMI. "
-            "Dla pełniejszej oceny warto również uwzględnić "
-            "obwód talii, skład ciała i poziom aktywności."
+            "To korzystna informacja, ale nie oznacza automatycznie "
+            "pełnej oceny zdrowia. Dla szerszego obrazu warto "
+            "uwzględnić obwód talii, skład ciała, aktywność "
+            "fizyczną i ogólną kondycję organizmu."
+        )
+
+    elif bmi < 27:
+        return (
+            "Wynik znajduje się w dolnej części zakresu nadwagi. "
+            "BMI jest wskaźnikiem przesiewowym i nie rozróżnia "
+            "tkanki tłuszczowej od mięśniowej. Warto rozszerzyć "
+            "analizę o obwód talii oraz skład ciała."
+        )
+
+    elif bmi < 30:
+        return (
+            "Wynik znajduje się w wyższej części zakresu nadwagi. "
+            "Warto przyjrzeć się obwodowi talii, poziomowi "
+            "aktywności i zmianom masy ciała w czasie. "
+            "Sam wskaźnik BMI nie pozwala określić ilości "
+            "tkanki tłuszczowej."
+        )
+
+    elif bmi < 35:
+        return (
+            "BMI wskazuje na otyłość I stopnia. Warto potraktować "
+            "wynik jako sygnał do szerszej oceny zdrowia, "
+            "uwzględniającej między innymi obwód talii, ciśnienie "
+            "tętnicze i parametry metaboliczne. Pomocna może być "
+            "konsultacja z lekarzem lub dietetykiem."
+        )
+
+    elif bmi < 40:
+        return (
+            "BMI wskazuje na otyłość II stopnia. Warto skonsultować "
+            "wynik z lekarzem i przeprowadzić szerszą ocenę "
+            "czynników zdrowotnych. BMI samo w sobie nie określa "
+            "indywidualnego stanu zdrowia ani składu ciała."
         )
 
     else:
-
         return (
-            "Warto rozszerzyć analizę o obwód talii, "
-            "skład ciała i aktywność fizyczną. BMI nie "
-            "rozróżnia tkanki tłuszczowej od mięśniowej."
+            "BMI wskazuje na otyłość III stopnia. Wskazana jest "
+            "konsultacja lekarska i indywidualna ocena stanu "
+            "zdrowia. Dalsze postępowanie powinno uwzględniać "
+            "całość sytuacji zdrowotnej, a nie wyłącznie "
+            "wartość wskaźnika BMI."
         )
 
 
 # ============================================================
-# 8. NAGŁÓWEK APLIKACJI
+# 9. INTELIGENTNE WSKAZÓWKI
+# ============================================================
+
+def get_bmi_tips(bmi):
+
+    if bmi < 18.5:
+        return [
+            {
+                "title": "Ocena masy ciała",
+                "text": (
+                    "Zwróć uwagę na stabilność masy ciała "
+                    "i ewentualne niezamierzone spadki."
+                )
+            },
+            {
+                "title": "Odżywianie",
+                "text": (
+                    "Warto ocenić regularność posiłków "
+                    "i podaż energii oraz składników odżywczych."
+                )
+            },
+            {
+                "title": "Kolejny krok",
+                "text": (
+                    "Rozważ konsultację ze specjalistą, "
+                    "szczególnie jeśli niska masa ciała "
+                    "jest nowym zjawiskiem."
+                )
+            }
+        ]
+
+    elif bmi < 25:
+        return [
+            {
+                "title": "Monitoruj obwód talii",
+                "text": (
+                    "Obwód talii dostarcza dodatkowych "
+                    "informacji o rozmieszczeniu tkanki tłuszczowej."
+                )
+            },
+            {
+                "title": "Dbaj o aktywność",
+                "text": (
+                    "Regularny ruch wspiera kondycję, "
+                    "sprawność i zdrowie metaboliczne."
+                )
+            },
+            {
+                "title": "Rozszerz analizę",
+                "text": (
+                    "Rozważ analizę składu ciała, jeśli chcesz "
+                    "uzyskać pełniejszy obraz swoich parametrów."
+                )
+            }
+        ]
+
+    else:
+        return [
+            {
+                "title": "Sprawdź obwód talii",
+                "text": (
+                    "To ważny parametr uzupełniający BMI "
+                    "w ocenie rozmieszczenia tkanki tłuszczowej."
+                )
+            },
+            {
+                "title": "Przeanalizuj aktywność",
+                "text": (
+                    "Uwzględnij codzienny ruch, trening "
+                    "i czas spędzany w pozycji siedzącej."
+                )
+            },
+            {
+                "title": "Rozważ szerszą ocenę",
+                "text": (
+                    "Konsultacja ze specjalistą może pomóc "
+                    "dobrać dalsze kroki do indywidualnej sytuacji."
+                )
+            }
+        ]
+
+
+# ============================================================
+# 10. NAGŁÓWEK APLIKACJI
 # ============================================================
 
 render_html("""
@@ -487,7 +662,7 @@ st.divider()
 
 
 # ============================================================
-# 9. FORMULARZ DANYCH
+# 11. FORMULARZ DANYCH
 # ============================================================
 
 render_html("""
@@ -501,7 +676,6 @@ with st.form("bmi_form"):
     col1, col2 = st.columns(2)
 
     with col1:
-
         weight = st.number_input(
             "Masa ciała (kg)",
             min_value=1.0,
@@ -512,7 +686,6 @@ with st.form("bmi_form"):
         )
 
     with col2:
-
         height = st.number_input(
             "Wzrost (cm)",
             min_value=100.0,
@@ -529,7 +702,7 @@ with st.form("bmi_form"):
 
 
 # ============================================================
-# 10. OBLICZENIA I ZAPIS WYNIKÓW
+# 12. OBLICZENIA I ZAPIS WYNIKÓW
 # ============================================================
 
 if submitted:
@@ -542,27 +715,29 @@ if submitted:
 
     insight = get_bmi_insight(bmi)
 
+    weight_difference = calculate_weight_difference(
+        weight,
+        min_weight,
+        max_weight
+    )
+
+    tips = get_bmi_tips(bmi)
+
     st.session_state["bmi_result"] = {
-
         "bmi": round(bmi, 2),
-
         "weight": weight,
-
         "height": height,
-
         "category": category,
-
         "min_weight": min_weight,
-
         "max_weight": max_weight,
-
-        "insight": insight
-
+        "insight": insight,
+        "weight_difference": weight_difference,
+        "tips": tips
     }
 
 
 # ============================================================
-# 11. DASHBOARD WYNIKÓW
+# 13. DASHBOARD WYNIKÓW
 # ============================================================
 
 result = st.session_state.get("bmi_result")
@@ -570,7 +745,6 @@ result = st.session_state.get("bmi_result")
 if result:
 
     bmi = result["bmi"]
-
     category = result["category"]
 
     st.divider()
@@ -582,10 +756,10 @@ if result:
     """)
 
     # --------------------------------------------------------
-    # DWIE GŁÓWNE KARTY
+    # TRZY KARTY GŁÓWNE
     # --------------------------------------------------------
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
 
@@ -604,9 +778,7 @@ if result:
 
             <div class="category-label"
                  style="color: {category["color"]};">
-
                 {category["name"]}
-
             </div>
 
             <div class="result-description">
@@ -619,7 +791,6 @@ if result:
     with col2:
 
         min_weight = format_number(result["min_weight"], 1)
-
         max_weight = format_number(result["max_weight"], 1)
 
         render_html(f"""
@@ -640,9 +811,44 @@ if result:
         </div>
         """)
 
+    with col3:
+
+        difference = result["weight_difference"]
+
+        if difference["direction"] == "w zakresie":
+            difference_value = "0,0 kg"
+            difference_label = "Masa w zakresie"
+        else:
+            difference_value = (
+                f"{format_number(difference['value'], 1)} kg"
+            )
+            difference_label = (
+                f"{difference['direction']} zakresu"
+            )
+
+        render_html(f"""
+        <div class="metric-card">
+
+            <div class="metric-label">
+                RÓŻNICA DO ZAKRESU BMI
+            </div>
+
+            <div class="metric-value">
+                {difference_value}
+            </div>
+
+            <div class="metric-description">
+                {difference_label}
+                <br>
+                {difference["description"]}
+            </div>
+
+        </div>
+        """)
+
 
     # ========================================================
-    # 12. WIZUALIZACJA SKALI BMI
+    # 14. WIZUALIZACJA SKALI BMI
     # ========================================================
 
     render_html("""
@@ -651,10 +857,7 @@ if result:
     </div>
     """)
 
-    # Skala obejmuje wartości od BMI 15 do BMI 40.
-
     marker_position = ((bmi - 15) / 25) * 100
-
     marker_position = max(0, min(100, marker_position))
 
     scale_thresholds = [
@@ -692,9 +895,7 @@ if result:
         </div>
 
         <div class="scale-labels">
-
             {labels_html}
-
         </div>
 
     </div>
@@ -702,7 +903,7 @@ if result:
 
 
     # ========================================================
-    # 13. KOMENTARZ ANALITYCZNY
+    # 15. ROZSZERZONA ANALIZA I INTERPRETACJA
     # ========================================================
 
     render_html("""
@@ -725,7 +926,36 @@ if result:
 
 
     # ========================================================
-    # 14. OGRANICZENIA BMI
+    # 16. INTELIGENTNE WSKAZÓWKI
+    # ========================================================
+
+    render_html("""
+    <div class="section-title">
+        Rekomendowane kolejne kroki
+    </div>
+    """)
+
+    tip_columns = st.columns(3)
+
+    for index, tip in enumerate(result["tips"]):
+
+        with tip_columns[index]:
+
+            render_html(f"""
+            <div class="tip-card">
+
+                <div class="tip-heading">
+                    {tip["title"]}
+                </div>
+
+                {tip["text"]}
+
+            </div>
+            """)
+
+
+    # ========================================================
+    # 17. OGRANICZENIA BMI
     # ========================================================
 
     with st.expander("Dowiedz się więcej o wskaźniku BMI"):
@@ -775,12 +1005,16 @@ if result:
         do oceny masy ciała i nie stanowi pełnej oceny
         stanu zdrowia.
 
+        Zakres masy ciała prezentowany przez aplikację
+        jest obliczeniem matematycznym opartym na BMI,
+        a nie indywidualnym celem terapeutycznym.
+
     </div>
     """)
 
 
 # ============================================================
-# 15. STOPKA
+# 18. STOPKA
 # ============================================================
 
 st.divider()
