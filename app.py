@@ -4,7 +4,7 @@ import streamlit as st
 
 # ============================================================
 # BODYLAB | BMI & BODY ANALYTICS
-# Version 1.4.0
+# Version 1.5.0
 # Python + Streamlit
 # ============================================================
 
@@ -552,7 +552,50 @@ def get_whtr_category(whtr, bmi):
 
 
 # ============================================================
-# 8. ROZSZERZONA INTERPRETACJA BMI
+# 9. ANALIZA WHR – TALIA / BIODRA
+# ============================================================
+
+def calculate_whr(waist_cm, hip_cm):
+    """Oblicza Waist-to-Hip Ratio na podstawie obwodów w cm."""
+    return waist_cm / hip_cm
+
+
+def get_whr_category(whr, sex):
+    """
+    Orientacyjna klasyfikacja WHR według progów WHO:
+    kobiety >= 0,85; mężczyźni >= 0,90.
+    WHO opisuje te wartości jako próg znacznie zwiększonego
+    ryzyka powikłań metabolicznych.
+    """
+    threshold = 0.85 if sex == "Kobieta" else 0.90
+
+    if whr >= threshold:
+        return {
+            "name": "Wynik powyżej progu WHO",
+            "color": "#D97706",
+            "threshold": threshold,
+            "description": (
+                f"Wynik osiąga lub przekracza próg {threshold:.2f} "
+                "stosowany dla wybranej płci. Według kryterium WHO "
+                "wiąże się to ze znacznie zwiększonym ryzykiem "
+                "powikłań metabolicznych. Nie jest to diagnoza."
+            )
+        }
+
+    return {
+        "name": "Poniżej progu WHO",
+        "color": "#059669",
+        "threshold": threshold,
+        "description": (
+            f"Wynik znajduje się poniżej progu {threshold:.2f} "
+            "stosowanego dla wybranej płci. Sam ten rezultat "
+            "nie wyklucza innych czynników ryzyka."
+        )
+    }
+
+
+# ============================================================
+# 10. ROZSZERZONA INTERPRETACJA BMI
 # ============================================================
 
 def get_bmi_insight(bmi):
@@ -780,6 +823,27 @@ with st.form("bmi_form"):
             format="%.1f"
         )
 
+    col4, col5 = st.columns(2)
+
+    with col4:
+        hips = st.number_input(
+            "Obwód bioder (cm)",
+            min_value=40.0,
+            max_value=250.0,
+            value=95.0,
+            step=1.0,
+            format="%.1f",
+            help="Zmierz najszersze miejsce bioder i pośladków."
+        )
+
+    with col5:
+        sex = st.selectbox(
+            "Płeć biologiczna – do interpretacji WHR",
+            options=["Kobieta", "Mężczyzna"],
+            index=1,
+            help="Wybór służy wyłącznie do zastosowania odpowiedniego progu WHR."
+        )
+
     submitted = st.form_submit_button(
         "ANALIZUJ MOJE BMI",
         use_container_width=True
@@ -810,6 +874,8 @@ if submitted:
     tips = get_bmi_tips(bmi)
     whtr = calculate_whtr(waist, height)
     whtr_category = get_whtr_category(whtr, bmi)
+    whr = calculate_whr(waist, hips)
+    whr_category = get_whr_category(whr, sex)
 
     st.session_state["bmi_result"] = {
         "bmi": round(bmi, 2),
@@ -822,8 +888,12 @@ if submitted:
         "weight_difference": weight_difference,
         "tips": tips,
         "waist": waist,
+        "hips": hips,
+        "sex": sex,
         "whtr": round(whtr, 3),
-        "whtr_category": whtr_category
+        "whtr_category": whtr_category,
+        "whr": round(whr, 3),
+        "whr_category": whr_category
     }
 
 
@@ -1027,7 +1097,63 @@ if result:
 
 
     # ========================================================
-    # 15. WIZUALIZACJA SKALI BMI
+    # 15. ANALIZA WHR
+    # ========================================================
+
+    st.divider()
+
+    render_html("""
+    <div class="section-title">
+        Analiza proporcji talii do bioder – WHR
+    </div>
+    """)
+
+    whr_category = result["whr_category"]
+    whr_value = format_number(result["whr"], 3)
+
+    whr_col1, whr_col2 = st.columns(2)
+
+    with whr_col1:
+        render_html(f"""
+        <div class="result-card">
+            <div class="metric-label">WAIST-TO-HIP RATIO</div>
+            <div class="bmi-number">{whr_value}</div>
+            <div class="category-label" style="color: {whr_category["color"]};">
+                {whr_category["name"]}
+            </div>
+            <div class="result-description">
+                {whr_category["description"]}
+            </div>
+        </div>
+        """)
+
+    with whr_col2:
+        render_html(f"""
+        <div class="metric-card">
+            <div class="metric-label">WPROWADZONE OBWODY</div>
+            <div class="metric-value">{format_number(result["waist"], 1)} / {format_number(result["hips"], 1)} cm</div>
+            <div class="metric-description">
+                Talia / biodra · Płeć do interpretacji: {result["sex"]}
+                <br>Próg WHO: {format_number(whr_category["threshold"], 2)}
+            </div>
+        </div>
+        """)
+
+    render_html("""
+    <div class="insight-card">
+        <div class="insight-heading">Jak interpretować WHR?</div>
+        WHR to stosunek obwodu talii do obwodu bioder. Pomaga ocenić,
+        czy obwód talii jest duży w relacji do obwodu bioder.
+        <br><br>
+        Wartości progowe stosowane w kryteriach WHO to 0,90 dla mężczyzn
+        i 0,85 dla kobiet. Osiągnięcie lub przekroczenie progu oznacza
+        znacznie zwiększone ryzyko powikłań metabolicznych w klasyfikacji
+        populacyjnej, ale nie stanowi rozpoznania choroby.
+    </div>
+    """)
+
+    # ========================================================
+    # 16. WIZUALIZACJA SKALI BMI
     # ========================================================
 
     render_html("""
@@ -1082,7 +1208,7 @@ if result:
 
 
     # ========================================================
-    # 16. ROZSZERZONA ANALIZA I INTERPRETACJA
+    # 17. ROZSZERZONA ANALIZA I INTERPRETACJA
     # ========================================================
 
     render_html("""
@@ -1105,7 +1231,7 @@ if result:
 
 
     # ========================================================
-    # 17. INTELIGENTNE WSKAZÓWKI
+    # 18. INTELIGENTNE WSKAZÓWKI
     # ========================================================
 
     render_html("""
@@ -1134,7 +1260,7 @@ if result:
 
 
     # ========================================================
-    # 18. OGRANICZENIA BMI
+    # 19. OGRANICZENIA I POMIARY
     # ========================================================
 
     with st.expander("Dowiedz się więcej o wskaźniku BMI"):
@@ -1176,6 +1302,22 @@ if result:
 
         WHtR obliczamy, dzieląc obwód talii przez wzrost,
         wyrażone w tych samych jednostkach.
+
+        ### Jak zmierzyć obwód bioder?
+
+        Stań prosto ze złączonymi stopami. Owiń miarkę poziomo
+        wokół najszerszej części bioder i pośladków. Miarka powinna
+        przylegać do ciała, ale nie uciskać skóry.
+
+        WHR obliczamy, dzieląc obwód talii przez obwód bioder.
+        Do obu pomiarów użyj tych samych jednostek.
+
+        ### Ograniczenia WHtR i WHR
+
+        To wskaźniki przesiewowe, a nie diagnoza. Wyniki mogą być
+        mniej miarodajne m.in. w ciąży, przy niektórych zmianach
+        budowy ciała lub trudnościach z wykonaniem pomiaru.
+        Interpretuj je razem z innymi informacjami o zdrowiu.
         """)
 
     render_html("""
@@ -1203,7 +1345,7 @@ if result:
 
 
 # ============================================================
-# 19. STOPKA
+# 20. STOPKA
 # ============================================================
 
 st.divider()
