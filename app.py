@@ -9,7 +9,7 @@ from supabase import create_client
 
 # ============================================================
 # BODYLAB | BMI & BODY ANALYTICS
-# Version 1.9.0
+# Version 1.9.1
 # Python + Streamlit
 # ============================================================
 
@@ -1001,8 +1001,9 @@ def render_auth_screen(client):
                     else:
                         st.success("Konto utworzone. Możesz już korzystać z BODYLAB.")
                         st.rerun()
-                except Exception:
-                    st.error("Nie udało się utworzyć konta. Sprawdź adres e-mail i spróbuj ponownie.")
+                except Exception as exc:
+                    st.error("Supabase odrzucił rejestrację. Szczegóły błędu:")
+                    st.code(str(exc))
 
     st.caption("Twoje pomiary są przypisywane do konta i chronione regułami RLS w bazie danych.")
 
