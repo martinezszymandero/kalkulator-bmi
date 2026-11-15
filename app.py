@@ -1,5 +1,6 @@
 
 import streamlit as st
+import textwrap
 
 # ============================================================
 # BODYLAB | BMI & BODY ANALYTICS
@@ -413,38 +414,58 @@ if result:
     st.divider()
 
     st.markdown(
-        '<div class="section-title">Twoje wyniki analizy</div>',
-        unsafe_allow_html=True
+        textwrap.dedent(f"""
+    <div class="result-card">
+
+        <div class="metric-label">
+            TWÓJ WSKAŹNIK BMI
+        </div>
+
+        <div class="bmi-number">
+            {bmi:.2f}
+        </div>
+
+        <div class="category-label"
+             style="color: {category["color"]};">
+
+            {category["name"]}
+
+        </div>
+
+        <p style="color:#718096; font-size:13px;">
+            {category["description"]}
+        </p>
+
+    </div>
+    """),
+    unsafe_allow_html=True
     )
 
     col1, col2 = st.columns([1, 1])
 
     with col1:
 
-        st.markdown(f"""
-        <div class="result-card">
+        st.markdown(
+            textwrap.dedent(f"""
+    <div class="metric-card">
 
-            <div class="metric-label">
-                TWÓJ WSKAŹNIK BMI
-            </div>
-
-            <div class="bmi-number">
-                {bmi:.2f}
-            </div>
-
-            <div class="category-label"
-                 style="color: {category["color"]};">
-
-                {category["name"]}
-
-            </div>
-
-            <p style="color:#718096; font-size:13px;">
-                {category["description"]}
-            </p>
-
+        <div class="metric-label">
+            PRAWIDŁOWY ZAKRES MASY CIAŁA
         </div>
-        """, unsafe_allow_html=True)
+
+        <div class="metric-value">
+            {result["min_weight"]}–{result["max_weight"]}
+        </div>
+
+        <div class="metric-description">
+            kg | Zakres odpowiadający BMI 18.5–24.9
+        </div>
+
+    </div>
+    """),
+    unsafe_allow_html=True
+    
+    )
 
     with col2:
 
