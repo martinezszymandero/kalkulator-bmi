@@ -4,7 +4,7 @@ import streamlit as st
 
 # ============================================================
 # BODYLAB | BMI & BODY ANALYTICS
-# Version 1.6.0
+# Version 1.7.0
 # Python + Streamlit
 # ============================================================
 
@@ -895,6 +895,39 @@ def get_smart_body_analysis(bmi, whtr_category, whr_category):
 
 
 # ============================================================
+# 10. KALKULATOR BMR / TDEE
+# ============================================================
+
+def calculate_bmr(weight, height_cm, age, sex):
+    """Szacuje BMR wzorem Mifflina-St Jeora dla osób dorosłych."""
+    sex_constant = 5 if sex == "Mężczyzna" else -161
+    return (10 * weight) + (6.25 * height_cm) - (5 * age) + sex_constant
+
+
+ACTIVITY_FACTORS = {
+    "Siedzący tryb życia (mało ruchu)": 1.20,
+    "Lekka aktywność (1–3 dni w tygodniu)": 1.375,
+    "Umiarkowana aktywność (3–5 dni w tygodniu)": 1.55,
+    "Wysoka aktywność (6–7 dni w tygodniu)": 1.725,
+    "Bardzo wysoka aktywność (ciężka praca lub intensywne treningi)": 1.90,
+}
+
+
+def calculate_tdee(bmr, activity_level):
+    """Szacuje całkowity wydatek energetyczny na podstawie współczynnika aktywności."""
+    return bmr * ACTIVITY_FACTORS[activity_level]
+
+
+def calculate_calorie_target(tdee, goal):
+    """Wyznacza orientacyjny punkt startowy, nie indywidualną dietę."""
+    if goal == "Redukcja masy ciała":
+        return tdee * 0.85
+    if goal == "Zwiększenie masy ciała":
+        return tdee * 1.07
+    return tdee
+
+
+# ============================================================
 # 10. NAGŁÓWEK APLIKACJI
 # ============================================================
 
@@ -905,7 +938,7 @@ render_html("""
 
 <div class="subtitle">
     BODY COMPOSITION & HEALTH ANALYTICS
-    &nbsp; | &nbsp; BMI ANALYSIS
+    &nbsp; | &nbsp; BMI & ENERGY ANALYSIS
 </div>
 """)
 
@@ -970,10 +1003,35 @@ with st.form("bmi_form"):
 
     with col5:
         sex = st.selectbox(
-            "Płeć biologiczna – do interpretacji WHR",
+            "Płeć biologiczna – do interpretacji WHR i BMR",
             options=["Kobieta", "Mężczyzna"],
             index=1,
-            help="Wybór służy wyłącznie do zastosowania odpowiedniego progu WHR."
+            help="Wybór służy do doboru progu WHR oraz równania Mifflina-St Jeora."
+        )
+
+    st.markdown("**Dane do obliczenia zapotrzebowania energetycznego**")
+    col6, col7, col8 = st.columns(3)
+
+    with col6:
+        age = st.number_input(
+            "Wiek (lata)", min_value=18, max_value=100, value=30, step=1,
+            help="Moduł BMR/TDEE jest przeznaczony dla osób dorosłych."
+        )
+
+    with col7:
+        activity_level = st.selectbox(
+            "Poziom aktywności",
+            options=list(ACTIVITY_FACTORS.keys()),
+            index=0,
+            help="Wybierz poziom najlepiej opisujący typowy tydzień, a nie pojedynczy trening."
+        )
+
+    with col8:
+        goal = st.selectbox(
+            "Cel energetyczny",
+            options=["Utrzymanie masy ciała", "Redukcja masy ciała", "Zwiększenie masy ciała"],
+            index=0,
+            help="Cel zmienia orientacyjny punkt startowy względem oszacowanego TDEE."
         )
 
     submitted = st.form_submit_button(
@@ -1012,6 +1070,10 @@ if submitted:
         bmi, whtr_category, whr_category
     )
 
+    bmr = calculate_bmr(weight, height, age, sex)
+    tdee = calculate_tdee(bmr, activity_level)
+    calorie_target = calculate_calorie_target(tdee, goal)
+
     st.session_state["bmi_result"] = {
         "bmi": round(bmi, 2),
         "weight": weight,
@@ -1029,7 +1091,14 @@ if submitted:
         "whtr_category": whtr_category,
         "whr": round(whr, 3),
         "whr_category": whr_category,
-        "smart_analysis": smart_analysis
+        "smart_analysis": smart_analysis,
+        "age": age,
+        "activity_level": activity_level,
+        "activity_factor": ACTIVITY_FACTORS[activity_level],
+        "goal": goal,
+        "bmr": round(bmr),
+        "tdee": round(tdee),
+        "calorie_target": round(calorie_target)
     }
 
 
@@ -1378,6 +1447,66 @@ if result:
         "Analiza regułowa BODYLAB zestawia wskaźniki, ale nie jest "
         "zwalidowanym kalkulatorem ryzyka ani diagnozą medyczną."
     )
+
+    # ========================================================
+    # 18. PERSONAL ENERGY PROFILE – BMR / TDEE
+    # ========================================================
+
+    st.divider()
+    render_html("""
+    <div class="section-title">
+        Personal Energy Profile – zapotrzebowanie energetyczne
+    </div>
+    """)
+
+    energy_cols = st.columns(3)
+    energy_metrics = [
+        ("BMR", result["bmr"], "kcal / dzień", "Szacowana podstawowa przemiana materii"),
+        ("TDEE", result["tdee"], "kcal / dzień", "Szacowane całkowite zapotrzebowanie energetyczne"),
+        ("CEL KALORYCZNY", result["calorie_target"], "kcal / dzień", result["goal"]),
+    ]
+    for col, metric in zip(energy_cols, energy_metrics):
+        label, value, unit, description = metric
+        with col:
+            render_html(f"""
+            <div class="metric-card">
+                <div class="metric-label">{label}</div>
+                <div class="metric-value">{value:,} {unit}</div>
+                <div class="metric-description">{description}</div>
+            </div>
+            """.replace(",", " "))
+
+    st.markdown(
+        f"**Profil obliczenia:** {result['age']} lat · {result['sex']} · "
+        f"{result['activity_level']} (współczynnik {result['activity_factor']:.3f})"
+    )
+
+    st.info(
+        "BMR oszacowano równaniem Mifflina–St Jeora, a TDEE przez "
+        "pomnożenie BMR przez wybrany współczynnik aktywności. "
+        "Cel kaloryczny jest orientacyjnym punktem startowym: redukcja "
+        "ok. 15% poniżej TDEE, utrzymanie na poziomie TDEE lub zwiększenie "
+        "ok. 7% powyżej TDEE. Rzeczywiste zapotrzebowanie może się różnić "
+        "i warto je weryfikować na podstawie trendu masy ciała, samopoczucia "
+        "oraz poziomu aktywności."
+    )
+
+    st.caption(
+        "Wynik nie jest indywidualnym zaleceniem dietetycznym. Równanie "
+        "ma charakter szacunkowy; szczególnej ostrożności wymagają m.in. "
+        "ciąża, karmienie piersią, choroby przewlekłe i zaburzenia odżywiania."
+    )
+
+    with st.expander("Jak interpretować BMR i TDEE?"):
+        st.markdown(
+            "**BMR** to szacunkowa ilość energii potrzebna organizmowi "
+            "w warunkach spoczynku do podtrzymania podstawowych funkcji.\n\n"
+            "**TDEE** uwzględnia także codzienną aktywność i ćwiczenia. "
+            "Wynik zależy od trafności wyboru poziomu aktywności.\n\n"
+            "**Cel kaloryczny** jest matematycznym punktem startowym, "
+            "a nie gwarancją określonego tempa zmiany masy ciała. "
+            "Nie należy traktować go jako sztywnego limitu."
+        )
 
     with st.expander("Szczegółowa interpretacja BMI"):
         render_html(f"""
