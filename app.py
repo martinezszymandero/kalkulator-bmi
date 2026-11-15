@@ -4,7 +4,7 @@ import streamlit as st
 
 # ============================================================
 # BODYLAB | BMI & BODY ANALYTICS
-# Version 1.3.0
+# Version 1.4.0
 # Python + Streamlit
 # ============================================================
 
@@ -474,6 +474,82 @@ def calculate_weight_difference(weight, min_weight, max_weight):
             )
         }
 
+# ============================================================
+# 8. ANALIZA WHtR
+# ============================================================
+
+def calculate_whtr(waist_cm, height_cm):
+    """
+    Oblicza Waist-to-Height Ratio.
+    """
+
+    return waist_cm / height_cm
+
+
+def get_whtr_category(whtr, bmi):
+    """
+    Klasyfikacja WHtR dla dorosłych.
+    Kategorie stosujemy przy BMI poniżej 35.
+    """
+
+    if bmi >= 35:
+        return {
+            "name": "Ograniczona interpretacja",
+            "color": "#64748B",
+            "description": (
+                "Przy BMI równym lub wyższym niż 35 "
+                "nie stosujemy w BODYLAB standardowej "
+                "klasyfikacji WHtR. Wskazana jest "
+                "indywidualna ocena specjalistyczna."
+            )
+        }
+
+    elif whtr < 0.4:
+        return {
+            "name": "Poniżej typowego zakresu",
+            "color": "#64748B",
+            "description": (
+                "Wynik jest poniżej przedziału 0,40–0,49. "
+                "Nie oznacza to automatycznie problemu, "
+                "ale warto interpretować go w kontekście "
+                "pozostałych parametrów."
+            )
+        }
+
+    elif whtr < 0.5:
+        return {
+            "name": "Prawidłowy zakres",
+            "color": "#059669",
+            "description": (
+                "Wynik mieści się w zakresie 0,40–0,49, "
+                "który nie wskazuje na zwiększone ryzyko "
+                "związane z centralnym rozmieszczeniem "
+                "tkanki tłuszczowej."
+            )
+        }
+
+    elif whtr < 0.6:
+        return {
+            "name": "Podwyższony poziom",
+            "color": "#D97706",
+            "description": (
+                "Wynik wskazuje na zwiększone ryzyko "
+                "związane z centralnym rozmieszczeniem "
+                "tkanki tłuszczowej."
+            )
+        }
+
+    else:
+        return {
+            "name": "Wysoki poziom",
+            "color": "#DC2626",
+            "description": (
+                "Wynik wskazuje na wysoki poziom "
+                "centralnej otyłości i dalsze zwiększenie "
+                "ryzyka zdrowotnego."
+            )
+        }
+
 
 # ============================================================
 # 8. ROZSZERZONA INTERPRETACJA BMI
@@ -672,8 +748,7 @@ render_html("""
 """)
 
 with st.form("bmi_form"):
-
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
         weight = st.number_input(
@@ -695,9 +770,20 @@ with st.form("bmi_form"):
             format="%.2f"
         )
 
+    with col3:
+        waist = st.number_input(
+            "Obwód talii (cm)",
+            min_value=30.0,
+            max_value=200.0,
+            value=80.0,
+            step=1.0,
+            format="%.1f"
+        )
+
     submitted = st.form_submit_button(
         "ANALIZUJ MOJE BMI",
         use_container_width=True
+
     )
 
 
@@ -722,6 +808,8 @@ if submitted:
     )
 
     tips = get_bmi_tips(bmi)
+    whtr = calculate_whtr(waist, height)
+    whtr_category = get_whtr_category(whtr, bmi)
 
     st.session_state["bmi_result"] = {
         "bmi": round(bmi, 2),
@@ -732,7 +820,10 @@ if submitted:
         "max_weight": max_weight,
         "insight": insight,
         "weight_difference": weight_difference,
-        "tips": tips
+        "tips": tips,
+        "waist": waist,
+        "whtr": round(whtr, 3),
+        "whtr_category": whtr_category
     }
 
 
@@ -846,9 +937,97 @@ if result:
         </div>
         """)
 
+    # ========================================================
+    # 14. ANALIZA WHtR
+    # ========================================================
+
+    st.divider()
+
+    render_html("""
+    <div class="section-title">
+        Analiza obwodu talii – WHtR
+    </div>
+    """)
+
+    whtr_category = result["whtr_category"]
+
+    whtr_value = format_number(result["whtr"], 3)
+
+    waist_value = format_number(result["waist"], 1)
+
+    whtr_col1, whtr_col2 = st.columns(2)
+
+    with whtr_col1:
+
+        render_html(f"""
+        <div class="result-card">
+
+            <div class="metric-label">
+                WAIST-TO-HEIGHT RATIO
+            </div>
+
+            <div class="bmi-number">
+                {whtr_value}
+            </div>
+
+            <div class="category-label"
+                 style="color: {whtr_category["color"]};">
+
+                {whtr_category["name"]}
+
+            </div>
+
+            <div class="result-description">
+                {whtr_category["description"]}
+            </div>
+
+        </div>
+        """)
+
+    with whtr_col2:
+
+        render_html(f"""
+        <div class="metric-card">
+
+            <div class="metric-label">
+                OBWÓD TALII
+            </div>
+
+            <div class="metric-value">
+                {waist_value} cm
+            </div>
+
+            <div class="metric-description">
+                Wprowadzony pomiar talii.
+                <br>
+                Wzrost: {format_number(result["height"], 1)} cm
+            </div>
+
+        </div>
+        """)
+
+    render_html("""
+    <div class="insight-card">
+
+        <div class="insight-heading">
+            Jak interpretować WHtR?
+        </div>
+
+        WHtR pokazuje relację obwodu talii do wzrostu.
+        Pomaga uzupełnić BMI o informację dotyczącą
+        rozmieszczenia tkanki tłuszczowej.
+
+        <br><br>
+
+        Orientacyjna zasada dla dorosłych:
+        obwód talii powinien być mniejszy niż połowa wzrostu.
+
+    </div>
+    """)
+
 
     # ========================================================
-    # 14. WIZUALIZACJA SKALI BMI
+    # 15. WIZUALIZACJA SKALI BMI
     # ========================================================
 
     render_html("""
@@ -903,7 +1082,7 @@ if result:
 
 
     # ========================================================
-    # 15. ROZSZERZONA ANALIZA I INTERPRETACJA
+    # 16. ROZSZERZONA ANALIZA I INTERPRETACJA
     # ========================================================
 
     render_html("""
@@ -926,7 +1105,7 @@ if result:
 
 
     # ========================================================
-    # 16. INTELIGENTNE WSKAZÓWKI
+    # 17. INTELIGENTNE WSKAZÓWKI
     # ========================================================
 
     render_html("""
@@ -955,7 +1134,7 @@ if result:
 
 
     # ========================================================
-    # 17. OGRANICZENIA BMI
+    # 18. OGRANICZENIA BMI
     # ========================================================
 
     with st.expander("Dowiedz się więcej o wskaźniku BMI"):
@@ -987,6 +1166,16 @@ if result:
         Klasyfikacja przedstawiona w BODYLAB dotyczy
         osób dorosłych. U dzieci i młodzieży stosuje
         się interpretację uwzględniającą wiek i płeć.
+
+        ### Jak prawidłowo zmierzyć obwód talii?
+
+        1. Znajdź dolną krawędź żeber i górną krawędź bioder.
+        2. Zmierz talię w połowie odległości między tymi punktami.
+        3. Utrzymuj miarkę poziomo i nie ściskaj skóry.
+        4. Odczytaj wynik po naturalnym wydechu.
+
+        WHtR obliczamy, dzieląc obwód talii przez wzrost,
+        wyrażone w tych samych jednostkach.
         """)
 
     render_html("""
@@ -1014,7 +1203,7 @@ if result:
 
 
 # ============================================================
-# 18. STOPKA
+# 19. STOPKA
 # ============================================================
 
 st.divider()
