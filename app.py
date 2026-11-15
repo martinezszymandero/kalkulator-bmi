@@ -1008,6 +1008,7 @@ def render_auth_screen(client):
                 "Adres e-mail do odzyskiwania hasła",
                 key="recovery_email"
             )
+
             recovery_submitted = st.form_submit_button(
                 "WYŚLIJ LINK DO ZMIANY HASŁA",
                 use_container_width=True
@@ -1018,16 +1019,20 @@ def render_auth_screen(client):
                 st.warning("Wpisz adres e-mail.")
             else:
                 try:
-                    client.auth.reset_password_for_email(
+                    recovery_client = get_password_recovery_client()
+
+                    recovery_client.auth.reset_password_for_email(
                         recovery_email.strip(),
                         {
                             "redirect_to": "https://martinezszymandero.github.io/kalkulator-bmi/password-reset/"
                         }
                     )
+
                     st.success(
                         "Jeśli konto jest zarejestrowane pod tym adresem, "
                         "otrzymasz wiadomość z linkiem do zmiany hasła."
                     )
+
                 except Exception:
                     st.error(
                         "Nie udało się wysłać wiadomości. "
