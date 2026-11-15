@@ -4,7 +4,7 @@ import pandas as pd
 import csv
 import io
 from datetime import datetime
-from supabase import create_client, AuthClientOptions
+from supabase import create_client
 
 
 # ============================================================
@@ -951,7 +951,7 @@ def get_supabase_client():
 
 
 def get_password_recovery_client():
-    """Osobny klient Supabase do odzyskiwania hasła w trybie implicit."""
+    """Osobny klient Supabase do odzyskiwania hasła."""
     if "password_recovery_client" not in st.session_state:
         try:
             url = st.secrets["SUPABASE_URL"]
@@ -965,8 +965,7 @@ def get_password_recovery_client():
 
         st.session_state["password_recovery_client"] = create_client(
             url,
-            key,
-            auth=AuthClientOptions(flow_type="implicit")
+            key
         )
 
     return st.session_state["password_recovery_client"]
