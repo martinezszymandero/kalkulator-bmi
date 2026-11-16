@@ -1256,18 +1256,20 @@ def measurement_to_display(row):
 # 10. NAGŁÓWEK APLIKACJI
 # ============================================================
 
-# Stała nawigacja boczna – odnośniki prowadzą do odpowiednich modułów dashboardu.
+# Logo i stała nawigacja boczna – odnośniki prowadzą do modułów dashboardu.
+# Plik bodylab_logo.png musi znajdować się w głównym katalogu repozytorium.
+st.sidebar.image("bodylab_logo.png", width=112)
 st.sidebar.markdown("""
 <div class="bl-sidebar-brand">BODY<span>LAB</span></div>
 <div class="bl-sidebar-caption">BODY COMPOSITION & HEALTH ANALYTICS</div>
 <div class="bl-nav-title">NAWIGACJA</div>
 <div class="bl-nav">
-  <a href="#bodylab-overview"><span class="nav-dot"></span> Przegląd wyników</a>
   <a href="#bodylab-measurement"><span class="nav-dot"></span> Nowy pomiar</a>
+  <a href="#bodylab-overview"><span class="nav-dot"></span> Przegląd wyników</a>
   <a href="#bodylab-body"><span class="nav-dot"></span> Analiza ciała</a>
   <a href="#bodylab-smart"><span class="nav-dot"></span> Smart Body Analysis</a>
   <a href="#bodylab-energy"><span class="nav-dot"></span> Profil energetyczny</a>
-  <a href="#bodylab-progress"><span class="nav-dot"></span> Postępy i historia</a>
+  <a href="#bodylab-progress"><span class="nav-dot"></span> Postępy i historia pomiarów</a>
 </div>
 <div class="bl-sidebar-foot">Twoje dane. Twoje pomiary. Twoja analiza.<br>Wersja testowa · BODYLAB 3.0</div>
 """, unsafe_allow_html=True)
