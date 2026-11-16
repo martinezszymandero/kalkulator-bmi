@@ -1183,17 +1183,57 @@ def measurement_to_display(row):
 
 
 # ============================================================
-# 10. NAGŁÓWEK APLIKACJI
+# 10. BODYLAB – PREMIUM DASHBOARD HEADER
 # ============================================================
 
 render_html("""
-<div class="brand">
-    🧬 BODY<span class="brand-accent">LAB</span>
-</div>
+<div style="
+    padding: 12px 0 28px 0;
+">
+    <div class="brand">
+        🧬 BODY<span class="brand-accent">LAB</span>
+    </div>
 
-<div class="subtitle">
-    BODY COMPOSITION & HEALTH ANALYTICS
-    &nbsp; | &nbsp; BMI & ENERGY ANALYSIS
+    <div class="subtitle">
+        BODY COMPOSITION & HEALTH ANALYTICS
+        &nbsp; | &nbsp; BMI & ENERGY ANALYSIS
+    </div>
+
+    <div style="
+        margin-top: 28px;
+        max-width: 760px;
+    ">
+        <div style="
+            color: #0D9488;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 9px;
+        ">
+            PERSONAL HEALTH DASHBOARD
+        </div>
+
+        <div style="
+            color: #142D4E;
+            font-size: 28px;
+            font-weight: 750;
+            line-height: 1.2;
+            margin-bottom: 9px;
+        ">
+            Twoje zdrowie. Twoje dane. Twoja analiza.
+        </div>
+
+        <div style="
+            color: #718198;
+            font-size: 14px;
+            line-height: 1.7;
+        ">
+            Wprowadź aktualne parametry ciała, aby uzyskać
+            wielowymiarową analizę BMI, proporcji ciała
+            i zapotrzebowania energetycznego.
+        </div>
+    </div>
 </div>
 """)
 
@@ -1201,7 +1241,7 @@ st.divider()
 
 
 # ============================================================
-# 11. FORMULARZ DANYCH
+# 11. FORMULARZ DANYCH – PREMIUM LAYOUT
 # ============================================================
 
 render_html("""
@@ -1211,6 +1251,24 @@ render_html("""
 """)
 
 with st.form("bmi_form"):
+
+    # --------------------------------------------------------
+    # 01. BODY MEASUREMENTS
+    # --------------------------------------------------------
+
+    render_html("""
+    <div style="
+        color: #0D9488;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        padding: 12px 0 15px 0;
+    ">
+        01 / Pomiary ciała
+    </div>
+    """)
+
     col1, col2, col3 = st.columns(3)
 
     with col1:
@@ -1243,6 +1301,22 @@ with st.form("bmi_form"):
             format="%.1f"
         )
 
+    # --------------------------------------------------------
+    # 02. PERSONAL PROFILE
+    # --------------------------------------------------------
+
+    render_html("""
+    <div style="
+        color: #0D9488;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        padding: 22px 0 15px 0;
+    ">
+        02 / Profil użytkownika
+    </div>
+    """)
+
     col4, col5 = st.columns(2)
 
     with col4:
@@ -1264,12 +1338,31 @@ with st.form("bmi_form"):
             help="Wybór służy do doboru progu WHR oraz równania Mifflina-St Jeora."
         )
 
-    st.markdown("**Dane do obliczenia zapotrzebowania energetycznego**")
+    # --------------------------------------------------------
+    # 03. ENERGY PROFILE
+    # --------------------------------------------------------
+
+    render_html("""
+    <div style="
+        color: #0D9488;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        padding: 22px 0 15px 0;
+    ">
+        03 / Profil energetyczny
+    </div>
+    """)
+
     col6, col7, col8 = st.columns(3)
 
     with col6:
         age = st.number_input(
-            "Wiek (lata)", min_value=18, max_value=100, value=30, step=1,
+            "Wiek (lata)",
+            min_value=18,
+            max_value=100,
+            value=30,
+            step=1,
             help="Moduł BMR/TDEE jest przeznaczony dla osób dorosłych."
         )
 
@@ -1284,15 +1377,20 @@ with st.form("bmi_form"):
     with col8:
         goal = st.selectbox(
             "Cel energetyczny",
-            options=["Utrzymanie masy ciała", "Redukcja masy ciała", "Zwiększenie masy ciała"],
+            options=[
+                "Utrzymanie masy ciała",
+                "Redukcja masy ciała",
+                "Zwiększenie masy ciała"
+            ],
             index=0,
             help="Cel zmienia orientacyjny punkt startowy względem oszacowanego TDEE."
         )
 
-    submitted = st.form_submit_button(
-        "ANALIZUJ MOJE BMI",
-        use_container_width=True
+    st.markdown("<div style='height: 12px'></div>", unsafe_allow_html=True)
 
+    submitted = st.form_submit_button(
+        "URUCHOM ANALIZĘ",
+        use_container_width=True
     )
 
 
