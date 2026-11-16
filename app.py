@@ -10,7 +10,7 @@ from smart_body_analysis_v2 import analyze_body
 
 # ============================================================
 # BODYLAB | BMI & BODY ANALYTICS
-# Version 1.9.1
+# Version 2.0.0 – Smart Body Analysis 2.0
 # Python + Streamlit
 # ============================================================
 
@@ -1247,7 +1247,10 @@ if submitted:
     bmr = calculate_bmr(weight, height, age, sex)
     tdee = calculate_tdee(bmr, activity_level)
     calorie_target = calculate_calorie_target(tdee, goal)
-        try:
+
+    # Historia jest pobierana tylko dla zalogowanego użytkownika.
+    # Jeśli baza chwilowo nie odpowiada, analiza bieżących danych nadal działa.
+    try:
         analysis_history = fetch_measurement_history(
             supabase_client,
             st.session_state["bodylab_user_id"]
@@ -1270,7 +1273,7 @@ if submitted:
         "calorie_target": calorie_target,
         "goal": goal,
         "activity_level": activity_level,
-        "history": analysis_history
+        "history": analysis_history,
     }
 
     smart_analysis = analyze_body(analysis_profile)
@@ -1614,39 +1617,76 @@ if result:
 
 
     # ========================================================
-    # 17. SMART BODY ANALYSIS – WSPÓLNA INTERPRETACJA
+    # 17. SMART BODY ANALYSIS 2.0 – RAPORT WIELOWYMIAROWY
     # ========================================================
 
     smart = result["smart_analysis"]
 
     render_html("""
     <div class="section-title">
-        Smart Body Analysis – wspólna interpretacja
+        Smart Body Analysis 2.0 – raport analityczny
     </div>
     """)
 
+    summary = smart["overall_summary"]
     render_html(f"""
     <div class="insight-card">
-        <div class="insight-heading">
-            {smart["title"]}
-        </div>
-        {smart["summary"]}
+        <div class="insight-heading">{summary["title"]}</div>
+        {summary["description"]}
     </div>
     """)
 
-    smart_cols = st.columns(3)
-    for index, recommendation in enumerate(smart["recommendations"]):
-        with smart_cols[index]:
-            render_html(f"""
-            <div class="tip-card">
-                <div class="tip-heading">Kolejny krok {index + 1}</div>
-                {recommendation}
-            </div>
-            """)
+    def render_analysis_section(title, section):
+        st.markdown(f"**{title}**")
+        if section["status"] == "insufficient_data":
+            st.info("Za mało danych, aby przygotować pełną analizę tego obszaru.")
+        findings = section.get("findings", [])
+        if not findings:
+            st.caption("Brak dodatkowych obserwacji dla tego obszaru.")
+        for finding in findings:
+            st.markdown(f"**{finding['title']}**  \n{finding['description']}")
+
+    analysis_cols = st.columns(3)
+    analysis_sections = [
+        ("Parametry ciała", smart["body_metrics"]),
+        ("Profil energetyczny", smart["energy_profile"]),
+        ("Analiza postępów", smart["progress_analysis"]),
+    ]
+    for col, (section_title, section_data) in zip(analysis_cols, analysis_sections):
+        with col:
+            render_analysis_section(section_title, section_data)
+
+    def render_finding_list(title, findings, empty_message):
+        st.markdown(f"**{title}**")
+        if not findings:
+            st.caption(empty_message)
+            return
+        for finding in findings:
+            st.markdown(f"- **{finding['title']}** — {finding['description']}")
+
+    render_finding_list(
+        "Mocne strony",
+        smart.get("strengths", []),
+        "Raport nie wskazał odrębnych mocnych stron na podstawie dostępnych danych."
+    )
+    render_finding_list(
+        "Obszary wymagające uwagi",
+        smart.get("attention_areas", []),
+        "Brak obszarów wyróżnionych przez reguły analizy. Nie oznacza to pełnej oceny zdrowia."
+    )
+    render_finding_list(
+        "Rekomendowane kolejne kroki",
+        smart.get("recommendations", []),
+        "Brak dodatkowych rekomendacji dla dostępnego zestawu danych."
+    )
+
+    with st.expander("Ograniczenia analizy Smart Body Analysis 2.0"):
+        for limitation in smart.get("limitations", []):
+            st.markdown(f"- {limitation}")
 
     st.caption(
-        "Analiza regułowa BODYLAB zestawia wskaźniki, ale nie jest "
-        "zwalidowanym kalkulatorem ryzyka ani diagnozą medyczną."
+        "Smart Body Analysis 2.0 to przejrzysta analiza regułowa. "
+        "Nie jest zwalidowanym kalkulatorem ryzyka, diagnozą ani poradą medyczną."
     )
 
     # ========================================================
