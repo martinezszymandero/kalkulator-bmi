@@ -1242,13 +1242,38 @@ if submitted:
     whtr_category = get_whtr_category(whtr, bmi)
     whr = calculate_whr(waist, hips)
     whr_category = get_whr_category(whr, sex)
-    smart_analysis = get_smart_body_analysis(
-        bmi, whtr_category, whr_category
-    )
+    
 
     bmr = calculate_bmr(weight, height, age, sex)
     tdee = calculate_tdee(bmr, activity_level)
     calorie_target = calculate_calorie_target(tdee, goal)
+        try:
+        analysis_history = fetch_measurement_history(
+            supabase_client,
+            st.session_state["bodylab_user_id"]
+        )
+    except Exception:
+        analysis_history = []
+
+    analysis_profile = {
+        "bmi": bmi,
+        "weight": weight,
+        "height": height,
+        "waist": waist,
+        "hips": hips,
+        "sex": sex,
+        "age": age,
+        "whtr": whtr,
+        "whr": whr,
+        "bmr": bmr,
+        "tdee": tdee,
+        "calorie_target": calorie_target,
+        "goal": goal,
+        "activity_level": activity_level,
+        "history": analysis_history
+    }
+
+    smart_analysis = analyze_body(analysis_profile)
 
     st.session_state["bmi_result"] = {
         "bmi": round(bmi, 2),
