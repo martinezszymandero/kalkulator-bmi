@@ -32,18 +32,38 @@ st.set_page_config(
 # 2. KONFIGURACJA CSS
 # ============================================================
 
+
 st.markdown("""
 <style>
 
+/* ==========================================================
+   BODYLAB | HYBRID ANALYTICS DESIGN SYSTEM 2.1
+   ========================================================== */
+
+:root {
+    --navy: #142D4E;
+    --navy-deep: #10243F;
+    --teal: #0D9488;
+    --teal-light: #E6F5F3;
+    --background: #F4F7FB;
+    --surface: #FFFFFF;
+    --border: #E3EAF2;
+    --text: #263B53;
+    --muted: #718198;
+    --soft-shadow: 0 8px 24px rgba(20, 45, 78, 0.055);
+}
+
+/* GLOBAL */
+
 .stApp {
-    background-color: #F3F6FA;
-    color: #172B45;
+    background: var(--background);
+    color: var(--text);
 }
 
 .block-container {
     max-width: 1180px;
-    padding-top: 2rem;
-    padding-bottom: 3rem;
+    padding-top: 2.2rem;
+    padding-bottom: 3.5rem;
 }
 
 #MainMenu,
@@ -58,90 +78,105 @@ header[data-testid="stHeader"] {
 /* BRANDING */
 
 .brand {
-    font-size: 34px;
+    font-size: 36px;
     font-weight: 850;
     letter-spacing: 2px;
-    color: #142D4E;
+    color: var(--navy);
+    line-height: 1.2;
 }
 
 .brand-accent {
-    color: #0D9488;
+    color: var(--teal);
 }
 
 .subtitle {
-    color: #718096;
-    font-size: 12px;
-    letter-spacing: 1.5px;
-    margin-bottom: 25px;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 1.7px;
+    margin-top: 7px;
+    margin-bottom: 30px;
 }
 
-/* NAGŁÓWKI */
+/* HEADINGS */
 
 .section-title {
-    font-size: 21px;
-    font-weight: 750;
-    color: #142D4E;
-    margin-top: 15px;
-    margin-bottom: 15px;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--navy);
+    margin-top: 22px;
+    margin-bottom: 19px;
+    letter-spacing: -0.3px;
 }
 
-/* KARTY */
+/* METRIC CARDS */
 
 .metric-card,
 .result-card {
-    background: #FFFFFF;
-    border: 1px solid #E5EAF1;
-    border-radius: 16px;
-    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 26px;
     min-height: 175px;
-    box-shadow: 0 4px 15px rgba(20,45,78,0.04);
+    box-shadow: var(--soft-shadow);
     box-sizing: border-box;
     height: 100%;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.metric-card:hover,
+.result-card:hover {
+    box-shadow: 0 12px 28px rgba(20, 45, 78, 0.09);
+    transform: translateY(-2px);
 }
 
 .metric-label {
-    color: #718096;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
 }
 
 .metric-value {
-    color: #142D4E;
-    font-size: 30px;
-    font-weight: 800;
-    margin-top: 15px;
+    color: var(--navy);
+    font-size: 32px;
+    font-weight: 850;
+    margin-top: 17px;
+    letter-spacing: -0.8px;
 }
 
 .metric-description {
-    color: #8492A6;
+    color: var(--muted);
     font-size: 12px;
-    margin-top: 8px;
-    line-height: 1.5;
+    margin-top: 10px;
+    line-height: 1.65;
 }
 
+/* BMI RESULT */
+
 .bmi-number {
-    color: #142D4E;
-    font-size: 62px;
-    font-weight: 850;
-    line-height: 1.2;
-    margin-top: 10px;
+    color: var(--navy);
+    font-size: 66px;
+    font-weight: 900;
+    line-height: 1.15;
+    margin-top: 12px;
+    letter-spacing: -2px;
 }
 
 .category-label {
-    font-size: 20px;
-    font-weight: 750;
-    margin-top: 10px;
-}
-
-.result-description {
-    color: #718096;
-    font-size: 13px;
-    line-height: 1.6;
+    font-size: 19px;
+    font-weight: 800;
     margin-top: 12px;
 }
 
-/* SKALA BMI */
+.result-description {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.7;
+    margin-top: 13px;
+}
+
+/* BMI SCALE */
 
 .bmi-scale {
     width: 100%;
@@ -168,11 +203,11 @@ header[data-testid="stHeader"] {
     top: -8px;
     width: 5px;
     height: 31px;
-    background: #142D4E;
+    background: var(--navy);
     border: 2px solid white;
     border-radius: 5px;
     transform: translateX(-50%);
-    box-shadow: 0 1px 5px rgba(0,0,0,0.25);
+    box-shadow: 0 2px 7px rgba(0,0,0,0.22);
 }
 
 .scale-labels {
@@ -184,7 +219,7 @@ header[data-testid="stHeader"] {
 .scale-label {
     position: absolute;
     transform: translateX(-50%);
-    color: #718096;
+    color: var(--muted);
     font-size: 11px;
 }
 
@@ -196,100 +231,138 @@ header[data-testid="stHeader"] {
     transform: translateX(-100%);
 }
 
-/* ANALIZA */
+/* ANALYSIS CARDS */
 
 .insight-card {
-    background: #FFFFFF;
-    border: 1px solid #E5EAF1;
-    border-left: 5px solid #0D9488;
-    border-radius: 12px;
-    padding: 20px;
-    margin-top: 12px;
-    color: #43546A;
-    line-height: 1.7;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 5px solid var(--teal);
+    border-radius: 14px;
+    padding: 23px;
+    margin-top: 14px;
+    color: var(--text);
+    line-height: 1.75;
+    box-shadow: 0 4px 15px rgba(20, 45, 78, 0.035);
 }
 
 .insight-heading {
-    color: #142D4E;
-    font-weight: 750;
+    color: var(--navy);
+    font-weight: 800;
     font-size: 16px;
-    margin-bottom: 10px;
+    margin-bottom: 11px;
 }
 
 .tip-card {
-    background: #FFFFFF;
-    border: 1px solid #E5EAF1;
-    border-radius: 12px;
-    padding: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 21px;
     height: 100%;
-    color: #43546A;
+    color: var(--text);
     font-size: 13px;
-    line-height: 1.6;
+    line-height: 1.7;
+    box-shadow: 0 4px 15px rgba(20, 45, 78, 0.035);
 }
 
 .tip-heading {
-    color: #142D4E;
-    font-weight: 750;
+    color: var(--navy);
+    font-weight: 800;
     font-size: 14px;
-    margin-bottom: 8px;
+    margin-bottom: 9px;
 }
 
-/* INFORMACJE EDUKACYJNE */
+/* EDUCATIONAL INFORMATION */
 
 .disclaimer {
-    background: #E8EEF5;
-    border-radius: 12px;
-    padding: 18px;
+    background: #EAF0F6;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 21px;
     color: #607086;
     font-size: 12px;
-    line-height: 1.7;
-    margin-top: 20px;
+    line-height: 1.8;
+    margin-top: 24px;
 }
 
-/* STOPKA */
+/* FOOTER */
 
 .footer {
     text-align: center;
     color: #94A3B8;
     font-size: 11px;
-    padding: 20px;
+    padding: 24px;
 }
 
-/* PRZYCISKI */
+/* BUTTONS */
 
 div.stButton > button,
 div.stFormSubmitButton > button {
-    background: #142D4E;
+    background: var(--navy);
     color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: 700;
-    min-height: 45px;
-    transition: background 0.2s ease;
+    border: 1px solid var(--navy);
+    border-radius: 11px;
+    font-weight: 750;
+    min-height: 47px;
+    transition: all 0.2s ease;
 }
 
 div.stButton > button:hover,
 div.stFormSubmitButton > button:hover {
-    background: #0D9488;
+    background: var(--teal);
+    border-color: var(--teal);
     color: white;
 }
 
-/* POLA LICZBOWE */
+/* INPUTS */
 
-[data-testid="stNumberInput"] input {
-    border-radius: 9px;
+[data-testid="stNumberInput"] input,
+[data-testid="stTextInput"] input,
+[data-testid="stSelectbox"] div[data-baseweb="select"] {
+    border-radius: 10px;
 }
 
-/* RESPONSYWNOŚĆ */
+[data-testid="stNumberInput"] input:focus,
+[data-testid="stTextInput"] input:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 1px var(--teal);
+}
+
+/* DIVIDERS */
+
+hr {
+    border-color: var(--border);
+    margin-top: 28px;
+    margin-bottom: 28px;
+}
+
+/* EXPANDERS */
+
+[data-testid="stExpander"] {
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: var(--surface);
+}
+
+/* RESPONSIVE */
 
 @media (max-width: 768px) {
 
+    .block-container {
+        padding-top: 1.2rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
     .brand {
-        font-size: 28px;
+        font-size: 29px;
+    }
+
+    .section-title {
+        font-size: 19px;
     }
 
     .bmi-number {
-        font-size: 48px;
+        font-size: 49px;
     }
 
     .metric-value {
@@ -298,12 +371,18 @@ div.stFormSubmitButton > button:hover {
 
     .result-card,
     .metric-card {
-        padding: 20px;
+        padding: 19px;
+    }
+
+    .insight-card,
+    .tip-card {
+        padding: 17px;
     }
 }
 
 </style>
 """, unsafe_allow_html=True)
+
 
 
 # ============================================================
