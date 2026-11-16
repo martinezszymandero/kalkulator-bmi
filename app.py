@@ -950,27 +950,6 @@ def get_supabase_client():
     return st.session_state["supabase_client"]
 
 
-def get_password_recovery_client():
-    """Osobny klient Supabase do odzyskiwania hasła."""
-    if "password_recovery_client" not in st.session_state:
-        try:
-            url = st.secrets["SUPABASE_URL"]
-            key = st.secrets["SUPABASE_KEY"]
-        except Exception:
-            st.error(
-                "Brakuje konfiguracji SUPABASE_URL lub SUPABASE_KEY "
-                "w Streamlit Secrets."
-            )
-            st.stop()
-
-        st.session_state["password_recovery_client"] = create_client(
-            url,
-            key
-        )
-
-    return st.session_state["password_recovery_client"]
-
-
 def render_auth_screen(client):
     """Ekran logowania i rejestracji BODYLAB."""
     st.markdown("""<div class="brand">🧬 BODY<span class="brand-accent">LAB</span></div>
@@ -1001,22 +980,18 @@ def render_auth_screen(client):
                 except Exception:
                     st.error("Logowanie nie powiodło się. Sprawdź adres e-mail, hasło i potwierdzenie adresu e-mail.")
 
-            # Odzyskiwanie hasła
-            st.markdown("### Nie pamiętasz hasła?")
-            st.caption(
-                "Przejdź do strony odzyskiwania hasła, "
-                "aby otrzymać link na swoją skrzynkę e-mail."
-            )
-
-            st.link_button(
-                "ODZYSKAJ HASŁO",
-                "https://martinezszymandero.github.io/kalkulator-bmi/password-reset/",
-                use_container_width=True
-            )
-                    st.error(
-                        "Nie udało się wysłać wiadomości. "
-                        "Spróbuj ponownie za chwilę."
-                    )
+        
+        # Odzyskiwanie hasła – obsługiwane na stronie GitHub Pages.
+        st.markdown("### Nie pamiętasz hasła?")
+        st.caption(
+            "Przejdź do strony odzyskiwania hasła, "
+            "aby otrzymać link na swoją skrzynkę e-mail."
+        )
+        st.link_button(
+            "ODZYSKAJ HASŁO",
+            "https://martinezszymandero.github.io/kalkulator-bmi/password-reset/",
+            use_container_width=True
+        )
     with signup_tab:
         with st.form("bodylab_signup_form"):
             new_email = st.text_input("Adres e-mail", key="signup_email")
