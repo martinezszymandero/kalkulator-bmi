@@ -23,7 +23,7 @@ st.set_page_config(
     page_title="BODYLAB | BMI Analysis",
     page_icon="🧬",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 
@@ -378,6 +378,76 @@ hr {
     .tip-card {
         padding: 17px;
     }
+}
+
+
+/* ==========================================================
+   BODYLAB 3.0 | DASHBOARD LAYOUT
+   ========================================================== */
+:root {
+    --navy: #10243F;
+    --navy-deep: #0B1B30;
+    --teal: #13A89E;
+    --teal-light: #E5F7F5;
+    --background: #F3F6FA;
+    --surface: #FFFFFF;
+    --border: #E5EAF1;
+    --text: #24364B;
+    --muted: #748399;
+    --soft-shadow: 0 10px 30px rgba(16,36,63,.055);
+}
+
+.stApp { background: var(--background); }
+.block-container { max-width: 1440px; padding: 2rem 2.6rem 4rem; }
+[data-testid="stSidebar"] { background: #10243F; border-right: 0; }
+[data-testid="stSidebar"] > div:first-child { padding: 1.4rem 1rem; }
+[data-testid="stSidebar"] * { color: #EAF1F8; }
+[data-testid="stSidebar"] hr { border-color: rgba(255,255,255,.14); }
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color: #AFC0D3; }
+[data-testid="stSidebar"] a { color: #EAF1F8 !important; text-decoration: none !important; }
+[data-testid="stSidebar"] a:hover { color: #5DE0D4 !important; }
+[data-testid="stSidebar"] .stButton button { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.13); color: white; }
+[data-testid="stHeader"] { background: rgba(243,246,250,.86); }
+
+/* Sidebar brand and navigation */
+.bl-sidebar-brand { font-size: 25px; font-weight: 900; letter-spacing: 1.8px; color: white; padding: 8px 8px 2px; }
+.bl-sidebar-brand span { color: #35C7BB; }
+.bl-sidebar-caption { color: #91A7BF; font-size: 9px; letter-spacing: 1.6px; padding: 0 9px 22px; }
+.bl-nav-title { color: #7188A3; font-size: 10px; font-weight: 800; letter-spacing: 1.7px; padding: 10px 10px 8px; }
+.bl-nav a { display: flex; align-items: center; gap: 11px; padding: 11px 12px; margin: 4px 0; border-radius: 10px; font-size: 13px; font-weight: 650; background: transparent; transition: .15s ease; }
+.bl-nav a:hover { background: rgba(255,255,255,.09); color: #5DE0D4 !important; }
+.bl-nav .nav-dot { width: 7px; height: 7px; border-radius: 50%; background: #35C7BB; display: inline-block; }
+.bl-sidebar-foot { color: #7188A3; font-size: 10px; line-height: 1.6; padding: 24px 10px 8px; }
+
+/* Main hero */
+.bl-hero { background: linear-gradient(120deg,#10243F 0%,#183B5C 70%,#116E70 130%); border-radius: 22px; padding: 30px 34px; margin: 2px 0 26px; box-shadow: 0 16px 36px rgba(16,36,63,.13); position: relative; overflow: hidden; }
+.bl-hero:after { content: ''; position: absolute; width: 250px; height: 250px; border: 1px solid rgba(255,255,255,.10); border-radius: 50%; right: -45px; top: -110px; box-shadow: 0 0 0 28px rgba(255,255,255,.025),0 0 0 58px rgba(255,255,255,.02); }
+.bl-hero-kicker { color: #7DE2D8; font-size: 10px; font-weight: 800; letter-spacing: 2px; margin-bottom: 10px; }
+.bl-hero-title { color: #FFFFFF; font-size: clamp(25px,3vw,36px); font-weight: 850; letter-spacing: -.8px; line-height: 1.15; }
+.bl-hero-copy { color: #C4D3E2; font-size: 13px; line-height: 1.7; margin-top: 10px; max-width: 650px; }
+.bl-hero-tag { display: inline-block; color: #D6F7F3; background: rgba(31,190,176,.16); border: 1px solid rgba(125,226,216,.25); padding: 6px 10px; border-radius: 30px; font-size: 10px; letter-spacing: .5px; margin-top: 16px; }
+
+/* Section hierarchy and surfaces */
+.section-title { font-size: 22px; font-weight: 820; color: #10243F; margin: 22px 0 18px; letter-spacing: -.45px; }
+.metric-card,.result-card { border: 1px solid #E5EAF1; border-radius: 17px; background: white; box-shadow: 0 7px 22px rgba(16,36,63,.045); padding: 23px; min-height: 160px; }
+.metric-card:hover,.result-card:hover { box-shadow: 0 12px 28px rgba(16,36,63,.08); transform: translateY(-1px); }
+.metric-value { color: #10243F; font-size: 29px; font-weight: 850; letter-spacing: -.8px; }
+.bmi-number { color: #10243F; font-size: 58px; font-weight: 900; }
+.metric-label { color: #7A899C; font-size: 10px; letter-spacing: 1.35px; }
+.insight-card { background: #EAF6F5; border: 1px solid #D4ECE9; border-left: 4px solid #13A89E; border-radius: 14px; padding: 20px 22px; color: #355367; line-height: 1.7; }
+.tip-card { background: white; border: 1px solid #E5EAF1; border-radius: 15px; box-shadow: 0 6px 18px rgba(16,36,63,.04); padding: 20px; }
+.stButton button, .stDownloadButton button, .stLinkButton a { border-radius: 10px; font-weight: 750; min-height: 42px; }
+.stButton button[kind="primary"], .stFormSubmitButton button[kind="primary"] { background: #0D9488; border-color: #0D9488; }
+.stTextInput input,.stNumberInput input,.stSelectbox div[data-baseweb="select"] { border-radius: 9px; }
+[data-testid="stForm"] { background: white; border: 1px solid #E5EAF1; border-radius: 18px; padding: 24px; box-shadow: 0 8px 24px rgba(16,36,63,.04); }
+[data-testid="stExpander"] { border: 1px solid #E5EAF1; border-radius: 12px; background: white; }
+[data-testid="stMetric"] { background: white; border: 1px solid #E5EAF1; border-radius: 14px; padding: 15px 17px; }
+[data-testid="stDivider"] { border-color: #E5EAF1; }
+[id^="bodylab-"] { scroll-margin-top: 24px; }
+
+@media (max-width: 900px) {
+  .block-container { padding: 1.2rem 1rem 3rem; }
+  .bl-hero { padding: 24px 22px; }
 }
 
 </style>
@@ -1183,92 +1253,46 @@ def measurement_to_display(row):
 
 
 # ============================================================
-# 10. BODYLAB – PREMIUM DASHBOARD HEADER
+# 10. NAGŁÓWEK APLIKACJI
 # ============================================================
 
+# Stała nawigacja boczna – odnośniki prowadzą do odpowiednich modułów dashboardu.
+st.sidebar.markdown("""
+<div class="bl-sidebar-brand">BODY<span>LAB</span></div>
+<div class="bl-sidebar-caption">BODY COMPOSITION & HEALTH ANALYTICS</div>
+<div class="bl-nav-title">NAWIGACJA</div>
+<div class="bl-nav">
+  <a href="#bodylab-overview"><span class="nav-dot"></span> Przegląd wyników</a>
+  <a href="#bodylab-measurement"><span class="nav-dot"></span> Nowy pomiar</a>
+  <a href="#bodylab-body"><span class="nav-dot"></span> Analiza ciała</a>
+  <a href="#bodylab-smart"><span class="nav-dot"></span> Smart Body Analysis</a>
+  <a href="#bodylab-energy"><span class="nav-dot"></span> Profil energetyczny</a>
+  <a href="#bodylab-progress"><span class="nav-dot"></span> Postępy i historia</a>
+</div>
+<div class="bl-sidebar-foot">Twoje dane. Twoje pomiary. Twoja analiza.<br>Wersja testowa · BODYLAB 3.0</div>
+""", unsafe_allow_html=True)
+
 render_html("""
-<div style="
-    padding: 12px 0 28px 0;
-">
-    <div class="brand">
-        🧬 BODY<span class="brand-accent">LAB</span>
-    </div>
-
-    <div class="subtitle">
-        BODY COMPOSITION & HEALTH ANALYTICS
-        &nbsp; | &nbsp; BMI & ENERGY ANALYSIS
-    </div>
-
-    <div style="
-        margin-top: 28px;
-        max-width: 760px;
-    ">
-        <div style="
-            color: #0D9488;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 9px;
-        ">
-            PERSONAL HEALTH DASHBOARD
-        </div>
-
-        <div style="
-            color: #142D4E;
-            font-size: 28px;
-            font-weight: 750;
-            line-height: 1.2;
-            margin-bottom: 9px;
-        ">
-            Twoje zdrowie. Twoje dane. Twoja analiza.
-        </div>
-
-        <div style="
-            color: #718198;
-            font-size: 14px;
-            line-height: 1.7;
-        ">
-            Wprowadź aktualne parametry ciała, aby uzyskać
-            wielowymiarową analizę BMI, proporcji ciała
-            i zapotrzebowania energetycznego.
-        </div>
-    </div>
+<div class="bl-hero">
+  <div class="bl-hero-kicker">BODY COMPOSITION & HEALTH ANALYTICS</div>
+  <div class="bl-hero-title">Twoje zdrowie. Twoje dane. Twoja analiza.</div>
+  <div class="bl-hero-copy">Kompleksowy obraz parametrów ciała, profilu energetycznego i zmian w czasie — zebrany w jednym, czytelnym panelu.</div>
+  <div class="bl-hero-tag">BMI · WHtR · WHR · SMART ANALYSIS · PROGRESS</div>
 </div>
 """)
 
-st.divider()
-
 
 # ============================================================
-# 11. FORMULARZ DANYCH – PREMIUM LAYOUT
+# 11. FORMULARZ DANYCH
 # ============================================================
 
 render_html("""
-<div class="section-title">
-    Twoje parametry
-</div>
+<div id="bodylab-measurement"></div>
+<div class="section-title">Nowy pomiar</div>
+<p style="color:#748399;margin-top:-10px;margin-bottom:18px;font-size:13px;">Uzupełnij parametry, aby wygenerować aktualny raport BODYLAB.</p>
 """)
 
 with st.form("bmi_form"):
-
-    # --------------------------------------------------------
-    # 01. BODY MEASUREMENTS
-    # --------------------------------------------------------
-
-    render_html("""
-    <div style="
-        color: #0D9488;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        padding: 12px 0 15px 0;
-    ">
-        01 / Pomiary ciała
-    </div>
-    """)
-
     col1, col2, col3 = st.columns(3)
 
     with col1:
@@ -1301,22 +1325,6 @@ with st.form("bmi_form"):
             format="%.1f"
         )
 
-    # --------------------------------------------------------
-    # 02. PERSONAL PROFILE
-    # --------------------------------------------------------
-
-    render_html("""
-    <div style="
-        color: #0D9488;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 1.5px;
-        padding: 22px 0 15px 0;
-    ">
-        02 / Profil użytkownika
-    </div>
-    """)
-
     col4, col5 = st.columns(2)
 
     with col4:
@@ -1338,31 +1346,12 @@ with st.form("bmi_form"):
             help="Wybór służy do doboru progu WHR oraz równania Mifflina-St Jeora."
         )
 
-    # --------------------------------------------------------
-    # 03. ENERGY PROFILE
-    # --------------------------------------------------------
-
-    render_html("""
-    <div style="
-        color: #0D9488;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 1.5px;
-        padding: 22px 0 15px 0;
-    ">
-        03 / Profil energetyczny
-    </div>
-    """)
-
+    st.markdown("**Dane do obliczenia zapotrzebowania energetycznego**")
     col6, col7, col8 = st.columns(3)
 
     with col6:
         age = st.number_input(
-            "Wiek (lata)",
-            min_value=18,
-            max_value=100,
-            value=30,
-            step=1,
+            "Wiek (lata)", min_value=18, max_value=100, value=30, step=1,
             help="Moduł BMR/TDEE jest przeznaczony dla osób dorosłych."
         )
 
@@ -1377,20 +1366,15 @@ with st.form("bmi_form"):
     with col8:
         goal = st.selectbox(
             "Cel energetyczny",
-            options=[
-                "Utrzymanie masy ciała",
-                "Redukcja masy ciała",
-                "Zwiększenie masy ciała"
-            ],
+            options=["Utrzymanie masy ciała", "Redukcja masy ciała", "Zwiększenie masy ciała"],
             index=0,
             help="Cel zmienia orientacyjny punkt startowy względem oszacowanego TDEE."
         )
 
-    st.markdown("<div style='height: 12px'></div>", unsafe_allow_html=True)
-
     submitted = st.form_submit_button(
-        "URUCHOM ANALIZĘ",
+        "ANALIZUJ MOJE BMI",
         use_container_width=True
+
     )
 
 
@@ -1497,9 +1481,9 @@ if result:
     st.divider()
 
     render_html("""
-    <div class="section-title">
-        Twoje wyniki analizy
-    </div>
+    <div id="bodylab-overview"></div>
+    <div class="section-title">Przegląd wyników</div>
+    <p style="color:#748399;margin-top:-10px;margin-bottom:18px;font-size:13px;">Najważniejsze wskaźniki z ostatniej analizy.</p>
     """)
 
     # --------------------------------------------------------
@@ -1600,9 +1584,10 @@ if result:
     st.divider()
 
     render_html("""
-    <div class="section-title">
-        Analiza obwodu talii – WHtR
-    </div>
+    <div id="bodylab-body"></div>
+    <div class="section-title">Analiza ciała</div>
+    <p style="color:#748399;margin-top:-10px;margin-bottom:18px;font-size:13px;">Wskaźniki uzupełniające BMI: relacja talii do wzrostu i bioder.</p>
+    <div class="section-title" style="font-size:17px;">Obwód talii – WHtR</div>
     """)
 
     whtr_category = result["whtr_category"]
@@ -1800,9 +1785,9 @@ if result:
     smart = result["smart_analysis"]
 
     render_html("""
-    <div class="section-title">
-        Smart Body Analysis 2.0 – raport analityczny
-    </div>
+    <div id="bodylab-smart"></div>
+    <div class="section-title">Smart Body Analysis</div>
+    <p style="color:#748399;margin-top:-10px;margin-bottom:18px;font-size:13px;">Regułowa interpretacja dostępnych danych i praktyczne kolejne kroki.</p>
     """)
 
     summary = smart["overall_summary"]
@@ -1872,9 +1857,9 @@ if result:
 
     st.divider()
     render_html("""
-    <div class="section-title">
-        Personal Energy Profile – zapotrzebowanie energetyczne
-    </div>
+    <div id="bodylab-energy"></div>
+    <div class="section-title">Profil energetyczny</div>
+    <p style="color:#748399;margin-top:-10px;margin-bottom:18px;font-size:13px;">Szacunkowe zapotrzebowanie energetyczne i punkt startowy dla wybranego celu.</p>
     """)
 
     energy_cols = st.columns(3)
@@ -1921,7 +1906,9 @@ if result:
 
     st.divider()
     render_html("""
-    <div class="section-title">Progress Tracker – historia i postępy</div>
+    <div id="bodylab-progress"></div>
+    <div class="section-title">Postępy i historia</div>
+    <p style="color:#748399;margin-top:-10px;margin-bottom:18px;font-size:13px;">Twoje zapisane pomiary, trendy i porównanie zmian w czasie.</p>
     """)
     st.caption("Pomiary są zapisywane na Twoim koncie BODYLAB i pozostają dostępne po ponownym zalogowaniu.")
 
