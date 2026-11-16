@@ -1278,10 +1278,77 @@ render_html("""
 <div class="bl-hero">
   <div class="bl-hero-kicker">BODY COMPOSITION & HEALTH ANALYTICS</div>
   <div class="bl-hero-title">Twoje zdrowie. Twoje dane. Twoja analiza.</div>
-  <div class="bl-hero-copy">Kompleksowy obraz parametrów ciała, profilu energetycznego i zmian w czasie — zebrany w jednym, czytelnym panelu.</div>
-  <div class="bl-hero-tag">BMI · WHtR · WHR · SMART ANALYSIS · PROGRESS</div>
+  <div class="bl-hero-copy">Witaj w swoim centrum BODYLAB. Sprawdź ostatnie pomiary, porównaj zmiany i obserwuj trendy.</div>
+  <div class="bl-hero-tag">PERSONAL HEALTH DASHBOARD · BODYLAB 3.1</div>
 </div>
+<div id="bodylab-overview"></div>
+<div class="section-title">Twój dashboard</div>
+<p style="color:#748399;margin-top:-10px;margin-bottom:18px;font-size:13px;">Podsumowanie ostatniego zapisanego pomiaru i zmian względem poprzedniego.</p>
 """)
+
+# Dashboard startowy: dane pobierane z historii przypisanej do zalogowanego konta.
+try:
+    dashboard_history = fetch_measurement_history(
+        supabase_client, st.session_state["bodylab_user_id"]
+    )
+except Exception:
+    dashboard_history = None
+    st.warning("Nie udało się pobrać danych dashboardu. Odśwież aplikację, aby spróbować ponownie.")
+
+if dashboard_history:
+    latest_measurement = dashboard_history[-1]
+    previous_measurement = dashboard_history[-2] if len(dashboard_history) >= 2 else None
+
+    metric_cols = st.columns(4)
+    dashboard_metrics = [
+        ("MASA CIAŁA", f"{float(latest_measurement['weight']):.1f} kg", "weight", "kg"),
+        ("BMI", f"{float(latest_measurement['bmi']):.2f}", "bmi", "pkt"),
+        ("WHtR", f"{float(latest_measurement['whtr']):.3f}", "whtr", "pkt"),
+        ("WHR", f"{float(latest_measurement['whr']):.3f}", "whr", "pkt"),
+    ]
+    for metric_col, (label, value, field, unit) in zip(metric_cols, dashboard_metrics):
+        with metric_col:
+            delta = None
+            if previous_measurement is not None:
+                difference = float(latest_measurement[field]) - float(previous_measurement[field])
+                delta = f"{difference:+.2f} {unit}" if field == "weight" else f"{difference:+.3f} {unit}"
+            st.metric(label, value, delta=delta, help="Zmiana względem poprzedniego zapisanego pomiaru." if delta else "Wykonaj kolejny pomiar, aby zobaczyć zmianę.")
+
+    created_at = latest_measurement.get("created_at", "")
+    if created_at:
+        try:
+            created_label = datetime.fromisoformat(created_at.replace("Z", "+00:00")).astimezone().strftime("%d.%m.%Y, %H:%M")
+        except Exception:
+            created_label = created_at
+    else:
+        created_label = "brak daty"
+    st.caption(f"Ostatni zapisany pomiar: {created_label} · Łącznie zapisanych pomiarów: {len(dashboard_history)}")
+
+    if previous_measurement is not None:
+        st.markdown("**Zmiana od poprzedniego pomiaru**")
+        change_cols = st.columns(3)
+        for col, (label, field, unit) in zip(change_cols, [("Masa ciała", "weight", "kg"), ("Obwód talii", "waist", "cm"), ("BMI", "bmi", "pkt")]):
+            delta = float(latest_measurement[field]) - float(previous_measurement[field])
+            with col:
+                st.metric(label, f"{float(latest_measurement[field]):.2f} {unit}", delta=f"{delta:+.2f} {unit}")
+
+    if len(dashboard_history) >= 2:
+        st.markdown("**Trend masy ciała**")
+        trend_df = pd.DataFrame(dashboard_history)
+        trend_df["Data"] = pd.to_datetime(trend_df["created_at"], errors="coerce", utc=True).dt.tz_convert(None)
+        trend_df = trend_df.dropna(subset=["Data"]).set_index("Data")
+        if not trend_df.empty:
+            st.line_chart(trend_df[["weight"]].rename(columns={"weight": "Masa ciała (kg)"}), use_container_width=True)
+        else:
+            st.caption("Daty zapisanych pomiarów nie pozwalają obecnie narysować wykresu.")
+    else:
+        st.info("Masz już pierwszy zapisany pomiar. Kolejny pozwoli BODYLAB pokazać zmiany i trendy.")
+
+    st.markdown("[Przejdź do nowego pomiaru](#bodylab-measurement) · [Zobacz pełną historię](#bodylab-progress)")
+else:
+    st.info("Nie masz jeszcze zapisanych pomiarów. Wykonaj pierwszy pomiar, aby uruchomić swój osobisty dashboard BODYLAB.")
+    st.caption("Po zapisaniu wyniku zobaczysz tutaj swoje BMI, masę ciała, wskaźniki obwodowe i zmiany w czasie.")
+
 
 
 # ============================================================
@@ -1483,8 +1550,8 @@ if result:
     st.divider()
 
     render_html("""
-    <div id="bodylab-overview"></div>
-    <div class="section-title">Przegląd wyników</div>
+    <div id="bodylab-report"></div>
+    <div class="section-title">Szczegółowy raport ostatniej analizy</div>
     <p style="color:#748399;margin-top:-10px;margin-bottom:18px;font-size:13px;">Najważniejsze wskaźniki z ostatniej analizy.</p>
     """)
 
@@ -1909,7 +1976,7 @@ if result:
     st.divider()
     render_html("""
     <div id="bodylab-progress"></div>
-    <div class="section-title">Postępy i historia</div>
+    <div class="section-title">Postępy i historia pomiarów</div>
     <p style="color:#748399;margin-top:-10px;margin-bottom:18px;font-size:13px;">Twoje zapisane pomiary, trendy i porównanie zmian w czasie.</p>
     """)
     st.caption("Pomiary są zapisywane na Twoim koncie BODYLAB i pozostają dostępne po ponownym zalogowaniu.")
