@@ -105,8 +105,32 @@
     <h1>BODYLAB</h1>
     <p class="subtitle">Odzyskiwanie dostępu do konta</p>
 
-    <section id="loading">
+    <section id="loading" class="hidden">
       Weryfikujemy link odzyskiwania hasła...
+    </section>
+
+    <section id="request-form" class="hidden">
+      <p>Podaj adres e-mail przypisany do Twojego konta BODYLAB. Wyślemy Ci link do ustawienia nowego hasła.</p>
+
+      <form id="recovery-request-form">
+        <label for="email">Adres e-mail</label>
+        <input
+          type="email"
+          id="email"
+          autocomplete="email"
+          required
+          placeholder="twoj@email.com"
+        >
+
+        <button id="request-button" type="submit">
+          Wyślij link odzyskiwania
+        </button>
+      </form>
+    </section>
+
+    <section id="request-sent" class="hidden">
+      <h2>Sprawdź swoją pocztę</h2>
+      <p>Jeśli konto istnieje dla podanego adresu, otrzymasz wiadomość z linkiem do zmiany hasła.</p>
     </section>
 
     <section id="reset-form" class="hidden">
@@ -164,14 +188,12 @@
     const SUPABASE_URL = "https://ebdotalnjfefhcmbbiib.supabase.co";
     const SUPABASE_KEY = "sb_publishable_ZlfU372tqiL8yJQtFQql0A_URjtNb2t";
 
-    const recoveryLink = window.location.hash.includes("type=recovery");
-
     const supabaseClient = window.supabase.createClient(
       SUPABASE_URL,
       SUPABASE_KEY,
       {
         auth: {
-          flowType: "implicit",
+          flowType: "pkce",
           detectSessionInUrl: true,
           persistSession: true,
           autoRefreshToken: true
@@ -180,43 +202,46 @@
     );
 
     const loading = document.getElementById("loading");
+    const requestForm = document.getElementById("request-form");
+    const requestSent = document.getElementById("request-sent");
     const resetForm = document.getElementById("reset-form");
     const success = document.getElementById("success");
     const errorSection = document.getElementById("error");
     const errorMessage = document.getElementById("error-message");
     const message = document.getElementById("message");
 
-    let recoveryReady = false;
+    function hideAllSections() {
+      loading.classList.add("hidden");
+      requestForm.classList.add("hidden");
+      requestSent.classList.add("hidden");
+      resetForm.classList.add("hidden");
+      success.classList.add("hidden");
+      errorSection.classList.add("hidden");
+    }
 
     function showError(text) {
-      loading.classList.add("hidden");
-      resetForm.classList.add("hidden");
+      hideAllSections();
       errorSection.classList.remove("hidden");
       errorMessage.textContent = text;
     }
 
     function showResetForm() {
-      if (recoveryReady) return;
-
-      recoveryReady = true;
-      loading.classList.add("hidden");
+      hideAllSections();
       resetForm.classList.remove("hidden");
     }
 
-    supabaseClient.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" && session) {
-        showResetForm();
-      }
-    });
-
     async function initialize() {
-      if (!recoveryLink) {
-        showError("Otwórz stronę za pomocą aktualnego linku otrzymanego w wiadomości e-mail.");
+      const params = new URLSearchParams(window.location.search);
+      const hasRecoveryCode = params.has("code");
+
+      if (!hasRecoveryCode) {
+        hideAllSections();
+        requestForm.classList.remove("hidden");
         return;
       }
 
-      // Dajemy bibliotece Supabase czas na obsłużenie tokenu z linku.
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      hideAllSections();
+      loading.classList.remove("hidden");
 
       const { data, error } = await supabaseClient.auth.getSession();
 
@@ -227,6 +252,35 @@
 
       showResetForm();
     }
+
+    document.getElementById("recovery-request-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const button = document.getElementById("request-button");
+
+      message.textContent = "";
+      button.disabled = true;
+      button.textContent = "Wysyłanie...";
+
+      const redirectUrl = window.location.origin + window.location.pathname;
+
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(
+        email,
+        { redirectTo: redirectUrl }
+      );
+
+      button.disabled = false;
+      button.textContent = "Wyślij link odzyskiwania";
+
+      if (error) {
+        message.textContent = "Nie udało się wysłać wiadomości: " + error.message;
+        return;
+      }
+
+      hideAllSections();
+      requestSent.classList.remove("hidden");
+    });
 
     document.getElementById("password-form").addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -261,9 +315,8 @@
         return;
       }
 
-      resetForm.classList.add("hidden");
+      hideAllSections();
       success.classList.remove("hidden");
-      message.textContent = "";
     });
 
     initialize();
