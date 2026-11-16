@@ -1,0 +1,34 @@
+name: BODYLAB Smart Body Analysis Tests
+
+on:
+  push:
+    branches:
+      - feature/advanced-bmi-analysis
+    paths:
+      - 'smart_body_analysis_v2.py'
+      - 'test_smart_body_analysis_v2.py'
+      - '.github/workflows/smart-body-analysis-tests.yml'
+  pull_request:
+    branches:
+      - feature/advanced-bmi-analysis
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Run Python unit tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Run unit tests
+        run: python -m unittest -v
