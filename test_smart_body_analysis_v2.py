@@ -1,4 +1,5 @@
-"""Unit tests for BODYLAB Smart Body Analysis 2.0 (run: python -m unittest -v)."""
+
+"""Unit tests for BODYLAB Smart Body Analysis 2.1 (run: python -m unittest -v)."""
 
 import unittest
 from smart_body_analysis_v2 import analyze_body
@@ -29,7 +30,7 @@ def base_profile(**overrides):
 class SmartBodyAnalysisTests(unittest.TestCase):
     def test_typical_metrics_and_male_whr_below_threshold(self):
         report = analyze_body(base_profile())
-        self.assertEqual(report["version"], "2.0")
+        self.assertEqual(report["version"], "2.1")
         titles = [x["title"] for x in report["body_metrics"]["findings"]]
         self.assertIn("WHR poniżej przyjętego progu", titles)
         self.assertIn("WHtR w typowym przedziale", titles)
@@ -97,6 +98,41 @@ class SmartBodyAnalysisTests(unittest.TestCase):
     def test_history_must_be_a_list(self):
         with self.assertRaises(ValueError):
             analyze_body(base_profile(history="not a list"))
+
+    def test_elevated_whtr_recommends_waist_observation(self):
+        report = analyze_body(base_profile(whtr=0.53))
+        titles = [x["title"] for x in report["recommendations"]]
+        self.assertIn("Obserwuj obwód talii", titles)
+
+    def test_whr_without_sex_recommends_profile_completion(self):
+        report = analyze_body(base_profile(sex=None, whr=0.92))
+        titles = [x["title"] for x in report["recommendations"]]
+        self.assertIn("Uzupełnij płeć w profilu", titles)
+
+    def test_bmi_whtr_disagreement_recommends_combined_interpretation(self):
+        report = analyze_body(base_profile(bmi=28, whtr=0.46))
+        titles = [x["title"] for x in report["recommendations"]]
+        self.assertIn("Nie opieraj oceny na jednym wskaźniku", titles)
+
+    def test_insufficient_history_recommends_building_measurement_history(self):
+        report = analyze_body(base_profile(history=[]))
+        titles = [x["title"] for x in report["recommendations"]]
+        self.assertIn("Zbuduj historię pomiarów", titles)
+
+    def test_reduction_goal_has_specific_recommendation(self):
+        report = analyze_body(base_profile(goal="Redukcja masy ciała"))
+        titles = [x["title"] for x in report["recommendations"]]
+        self.assertIn("Kontroluj założenia celu redukcyjnego", titles)
+
+    def test_maintenance_goal_has_specific_recommendation(self):
+        report = analyze_body(base_profile(goal="Utrzymanie masy ciała"))
+        titles = [x["title"] for x in report["recommendations"]]
+        self.assertIn("Weryfikuj utrzymanie na podstawie trendu", titles)
+
+    def test_gain_goal_has_specific_recommendation(self):
+        report = analyze_body(base_profile(goal="Przyrost masy mięśniowej"))
+        titles = [x["title"] for x in report["recommendations"]]
+        self.assertIn("Monitoruj przyrost w szerszym kontekście", titles)
 
 
 if __name__ == "__main__":
