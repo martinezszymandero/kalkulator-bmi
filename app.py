@@ -5,6 +5,7 @@ import csv
 import io
 from datetime import datetime
 from supabase import create_client
+from smart_body_analysis_v2 import analyze_body
 
 
 # ============================================================
