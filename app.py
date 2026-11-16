@@ -1002,37 +1002,17 @@ def render_auth_screen(client):
                     st.error("Logowanie nie powiodło się. Sprawdź adres e-mail, hasło i potwierdzenie adresu e-mail.")
 
             # Odzyskiwanie hasła
-        with st.form("bodylab_password_recovery_form"):
-            recovery_email = st.text_input(
-                "Adres e-mail do odzyskiwania hasła",
-                key="recovery_email"
+            st.markdown("### Nie pamiętasz hasła?")
+            st.caption(
+                "Przejdź do strony odzyskiwania hasła, "
+                "aby otrzymać link na swoją skrzynkę e-mail."
             )
 
-            recovery_submitted = st.form_submit_button(
-                "WYŚLIJ LINK DO ZMIANY HASŁA",
+            st.link_button(
+                "ODZYSKAJ HASŁO",
+                "https://martinezszymandero.github.io/kalkulator-bmi/password-reset/",
                 use_container_width=True
             )
-
-        if recovery_submitted:
-            if not recovery_email.strip():
-                st.warning("Wpisz adres e-mail.")
-            else:
-                try:
-                    recovery_client = get_password_recovery_client()
-
-                    recovery_client.auth.reset_password_for_email(
-                        recovery_email.strip(),
-                        {
-                            "redirect_to": "https://martinezszymandero.github.io/kalkulator-bmi/password-reset/"
-                        }
-                    )
-
-                    st.success(
-                        "Jeśli konto jest zarejestrowane pod tym adresem, "
-                        "otrzymasz wiadomość z linkiem do zmiany hasła."
-                    )
-
-                except Exception:
                     st.error(
                         "Nie udało się wysłać wiadomości. "
                         "Spróbuj ponownie za chwilę."
