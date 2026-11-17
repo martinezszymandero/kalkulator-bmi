@@ -1887,6 +1887,70 @@ if result:
         with col:
             render_analysis_section(section_title, section_data)
 
+    # --------------------------------------------------------
+    # WEIGHT INTELLIGENCE – INTERPRETACJA ZMIAN MASY
+    # --------------------------------------------------------
+
+    weight_analysis = smart.get("weight_intelligence", {})
+
+    st.divider()
+    st.markdown("### Weight Intelligence")
+    st.caption(
+        "Analiza kierunku i tempa zmian masy na podstawie zapisanej historii "
+        "oraz wybranego celu. Nie wyznacza docelowej masy ani nie ocenia "
+        "bezpieczeństwa tempa zmian."
+    )
+
+    if weight_analysis.get("status") != "available":
+        observations = weight_analysis.get("observations", [])
+        if observations:
+            for observation in observations:
+                st.info(
+                    f"**{observation.get('title', 'Informacja')}**\n\n"
+                    f"{observation.get('description', '')}"
+                )
+        else:
+            st.info("Za mało danych, aby ocenić kierunek zmian masy ciała.")
+    else:
+        weight_cols = st.columns(4)
+        weight_metrics = [
+            ("ZMIANA MASY", f"{weight_analysis.get('change_kg', 0):+.2f} kg"),
+            ("ZMIANA PROCENTOWA", f"{weight_analysis.get('change_percent', 0):+.2f}%"),
+            ("TEMPO / 30 DNI", f"{weight_analysis.get('change_per_30_days_kg', 0):+.2f} kg"),
+            ("OKRES ANALIZY", f"{weight_analysis.get('period_days', 0):.0f} dni"),
+        ]
+        for col, (label, value) in zip(weight_cols, weight_metrics):
+            with col:
+                st.metric(label, value)
+
+        st.caption(
+            f"Masa początkowa: {weight_analysis.get('start_weight', 0):.2f} kg · "
+            f"Ostatnia masa w historii: "
+            f"{weight_analysis.get('latest_recorded_weight', 0):.2f} kg · "
+            f"Liczba pomiarów: {weight_analysis.get('measurement_count', 0)}"
+        )
+
+        alignment_labels = {
+            "aligned": "Kierunek zmian jest zgodny z wybranym celem.",
+            "opposite": "Kierunek zmian jest przeciwny do wybranego celu.",
+            "stable": "Masa pozostała stabilna w analizowanym okresie.",
+            "change_observed": "Odnotowano zmianę masy; sam wynik nie przesądza o realizacji celu.",
+            "goal_not_recognized": "Nie rozpoznano celu — nie oceniono zgodności kierunku zmian.",
+        }
+        alignment = weight_analysis.get("goal_alignment")
+        if alignment:
+            st.markdown(f"**Relacja do celu:** {alignment_labels.get(alignment, 'Brak interpretacji celu.')}")
+
+        for observation in weight_analysis.get("observations", []):
+            st.markdown(f"**{observation.get('title', 'Obserwacja')}**  ")
+            st.write(observation.get("description", ""))
+
+    weight_limitations = weight_analysis.get("limitations", [])
+    if weight_limitations:
+        with st.expander("Ograniczenia Weight Intelligence"):
+            for limitation in weight_limitations:
+                st.markdown(f"- {limitation}")
+
     def render_finding_list(title, findings, empty_message):
         st.markdown(f"**{title}**")
         if not findings:
