@@ -1268,6 +1268,7 @@ st.sidebar.markdown("""
   <a href="#bodylab-overview"><span class="nav-dot"></span> Przegląd wyników</a>
   <a href="#bodylab-body"><span class="nav-dot"></span> Analiza ciała</a>
   <a href="#bodylab-smart"><span class="nav-dot"></span> Smart Body Analysis</a>
+  <a href="#bodylab-lifestyle"><span class="nav-dot"></span> Lifestyle Intelligence</a>
   <a href="#bodylab-energy"><span class="nav-dot"></span> Profil energetyczny</a>
   <a href="#bodylab-progress"><span class="nav-dot"></span> Postępy i historia pomiarów</a>
 </div>
@@ -2036,6 +2037,75 @@ if result:
         with st.expander("Ograniczenia Weight Intelligence"):
             for limitation in weight_limitations:
                 st.markdown(f"- {limitation}")
+
+    # --------------------------------------------------------
+    # LIFESTYLE INTELLIGENCE – WSKAZÓWKI EDUKACYJNE
+    # --------------------------------------------------------
+
+    lifestyle = smart.get("lifestyle_intelligence", {})
+
+    st.divider()
+    render_html("""
+    <div id="bodylab-lifestyle"></div>
+    <div class="section-title">Lifestyle Intelligence</div>
+    <p style="color:#748399;margin-top:-10px;margin-bottom:18px;font-size:13px;">
+        Krótkie wskazówki edukacyjne na podstawie wybranego poziomu aktywności i celu.
+    </p>
+    """)
+
+    if not lifestyle:
+        st.info(
+            "Moduł Lifestyle Intelligence nie zwrócił danych. "
+            "Sprawdź, czy silnik Smart Body Analysis 2.4 został wdrożony."
+        )
+    else:
+        lifestyle_status = lifestyle.get("status", "insufficient_data")
+        st.markdown(
+            lifestyle.get(
+                "overall_summary",
+                "Brak podsumowania dla dostępnych danych."
+            )
+        )
+
+        if lifestyle_status == "insufficient_data":
+            st.info("Za mało danych, aby przygotować wskazówki dotyczące stylu życia.")
+        else:
+            activity_guidance = lifestyle.get("activity_guidance")
+            goal_guidance = lifestyle.get("goal_guidance")
+            lifestyle_cols = st.columns(2)
+
+            with lifestyle_cols[0]:
+                st.markdown("**Aktywność fizyczna**")
+                if activity_guidance:
+                    observation = activity_guidance.get("observation")
+                    if observation:
+                        st.caption(observation)
+                    st.write(activity_guidance.get(
+                        "recommendation",
+                        "Brak dodatkowej wskazówki."
+                    ))
+                else:
+                    st.caption("Brak danych pozwalających przygotować wskazówkę dotyczącą aktywności.")
+
+            with lifestyle_cols[1]:
+                st.markdown("**Wybrany cel**")
+                if goal_guidance:
+                    st.write(goal_guidance.get(
+                        "recommendation",
+                        "Brak dodatkowej wskazówki."
+                    ))
+                else:
+                    st.caption("Brak danych pozwalających przygotować wskazówkę dotyczącą celu.")
+
+        lifestyle_limitations = lifestyle.get("limitations", [])
+        if lifestyle_limitations:
+            with st.expander("Ograniczenia Lifestyle Intelligence"):
+                for limitation in lifestyle_limitations:
+                    st.markdown(f"- {limitation}")
+
+        lifestyle_disclaimer = lifestyle.get("disclaimer")
+        if lifestyle_disclaimer:
+            st.caption(lifestyle_disclaimer)
 
     def render_finding_list(title, findings, empty_message):
         st.markdown(f"**{title}**")
