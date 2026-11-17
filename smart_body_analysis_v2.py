@@ -1,6 +1,6 @@
 
 """
-BODYLAB Smart Body Analysis 2.1
+BODYLAB Smart Body Analysis 2.2
 Independent analysis engine. Pure Python; no Streamlit/Supabase dependencies.
 
 This module provides transparent, rule-based observations. It is not a medical
@@ -12,6 +12,8 @@ from __future__ import annotations
 from datetime import date, datetime, timezone
 from math import isfinite
 from typing import Any
+
+from progress_intelligence import analyze_progress
 
 
 VERSION = "2.2"
@@ -438,6 +440,7 @@ def analyze_body(profile: dict[str, Any]) -> dict[str, Any]:
 
     history = _history_rows(profile.get("history", []))
     progress, _ = _progress_analysis(history)
+    progress_intelligence = analyze_progress(history)
 
     recommendations: list[dict[str, str]] = []
 
@@ -552,6 +555,7 @@ def analyze_body(profile: dict[str, Any]) -> dict[str, Any]:
         "body_metrics": body,
         "energy_profile": energy,
         "progress_analysis": progress,
+        "progress_intelligence": progress_intelligence,
         "strengths": strengths,
         "attention_areas": attention,
         "recommendations": recommendations,
