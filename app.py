@@ -10,7 +10,7 @@ from smart_body_analysis_v2 import analyze_body
 
 # ============================================================
 # BODYLAB | BMI & BODY ANALYTICS
-# Version 2.0.0 – Smart Body Analysis 2.0
+# Regułowa analiza parametrów ciała i historii pomiarów
 # Python + Streamlit
 # ============================================================
 
@@ -1850,7 +1850,7 @@ if result:
 
 
     # ========================================================
-    # 17. SMART BODY ANALYSIS 2.0 – RAPORT WIELOWYMIAROWY
+    # 17. SMART BODY ANALYSIS – RAPORT WIELOWYMIAROWY
     # ========================================================
 
     smart = result["smart_analysis"]
@@ -2057,7 +2057,7 @@ if result:
     if not lifestyle:
         st.info(
             "Moduł Lifestyle Intelligence nie zwrócił danych. "
-            "Sprawdź, czy silnik Smart Body Analysis 2.4 został wdrożony."
+            "Sprawdź, czy moduł analizy BODYLAB został prawidłowo wdrożony."
         )
     else:
         lifestyle_status = lifestyle.get("status", "insufficient_data")
@@ -2186,12 +2186,12 @@ if result:
         "Brak dodatkowych rekomendacji dla dostępnego zestawu danych."
     )
 
-    with st.expander("Ograniczenia analizy Smart Body Analysis 2.0"):
+    with st.expander("Ograniczenia analizy BODYLAB"):
         for limitation in smart.get("limitations", []):
             st.markdown(f"- {limitation}")
 
     st.caption(
-        "Smart Body Analysis 2.0 to przejrzysta analiza regułowa. "
+        "Analiza BODYLAB jest przejrzystą analizą regułową. "
         "Nie jest zwalidowanym kalkulatorem ryzyka, diagnozą ani poradą medyczną."
     )
 
