@@ -14,6 +14,7 @@ from math import isfinite
 from typing import Any
 
 from progress_intelligence import analyze_progress
+from weight_intelligence import analyze_weight
 
 
 VERSION = "2.2"
@@ -441,6 +442,11 @@ def analyze_body(profile: dict[str, Any]) -> dict[str, Any]:
     history = _history_rows(profile.get("history", []))
     progress, _ = _progress_analysis(history)
     progress_intelligence = analyze_progress(history)
+    weight_intelligence = analyze_weight(
+        history=history,
+        goal=profile.get("goal"),
+        current_weight=profile.get("weight"),
+    )
 
     recommendations: list[dict[str, str]] = []
 
@@ -556,6 +562,7 @@ def analyze_body(profile: dict[str, Any]) -> dict[str, Any]:
         "energy_profile": energy,
         "progress_analysis": progress,
         "progress_intelligence": progress_intelligence,
+        "weight_intelligence": weight_intelligence,
         "strengths": strengths,
         "attention_areas": attention,
         "recommendations": recommendations,
