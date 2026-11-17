@@ -16,9 +16,10 @@ from typing import Any
 from progress_intelligence import analyze_progress
 from weight_intelligence import analyze_weight
 from body_composition_intelligence import analyze_body_composition
+from lifestyle_intelligence import analyze_lifestyle
 
 
-VERSION = "2.3"
+VERSION = "2.4"
 
 
 def _number(value: Any, field: str, *, minimum: float | None = None) -> float | None:
@@ -454,6 +455,7 @@ def analyze_body(profile: dict[str, Any]) -> dict[str, Any]:
         goal=profile.get("goal"),
         current_weight=profile.get("weight"),
     )
+    lifestyle_intelligence = analyze_lifestyle(profile)
 
     recommendations: list[dict[str, str]] = []
 
@@ -571,6 +573,7 @@ def analyze_body(profile: dict[str, Any]) -> dict[str, Any]:
         "progress_analysis": progress,
         "progress_intelligence": progress_intelligence,
         "weight_intelligence": weight_intelligence,
+        "lifestyle_intelligence": lifestyle_intelligence,
         "strengths": strengths,
         "attention_areas": attention,
         "recommendations": recommendations,
