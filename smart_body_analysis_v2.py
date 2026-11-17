@@ -15,9 +15,10 @@ from typing import Any
 
 from progress_intelligence import analyze_progress
 from weight_intelligence import analyze_weight
+from body_composition_intelligence import analyze_body_composition
 
 
-VERSION = "2.2"
+VERSION = "2.3"
 
 
 def _number(value: Any, field: str, *, minimum: float | None = None) -> float | None:
@@ -437,6 +438,12 @@ def analyze_body(profile: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("profile must be a dictionary.")
 
     body, strengths, attention = _body_metrics(profile)
+    body_composition_intelligence = analyze_body_composition(
+        bmi=profile.get("bmi"),
+        whtr=profile.get("whtr"),
+        whr=profile.get("whr"),
+        sex=profile.get("sex"),
+    )
     energy, _ = _energy_profile(profile)
 
     history = _history_rows(profile.get("history", []))
@@ -559,6 +566,7 @@ def analyze_body(profile: dict[str, Any]) -> dict[str, Any]:
             "description": summary_description
         },
         "body_metrics": body,
+        "body_composition_intelligence": body_composition_intelligence,
         "energy_profile": energy,
         "progress_analysis": progress,
         "progress_intelligence": progress_intelligence,
