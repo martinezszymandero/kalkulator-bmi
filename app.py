@@ -1498,6 +1498,8 @@ if submitted:
 
     smart_analysis = analyze_body(analysis_profile)
 
+    st.session_state.pop("bodylab_saved_result_signature", None)
+
     st.session_state["bmi_result"] = {
         "bmi": round(bmi, 2),
         "weight": weight,
@@ -2219,16 +2221,21 @@ if result:
     )
 
     # ========================================================
-    # 19. PROGRESS TRACKER – HISTORIA POMIARÓW (SUPABASE)
+    # ZAPIS BIEŻĄCEGO WYNIKU ANALIZY
     # ========================================================
 
     st.divider()
-    render_html("""
-    <div id="bodylab-progress"></div>
-    <div class="section-title">Postępy i historia pomiarów</div>
-    <p style="color:#748399;margin-top:-10px;margin-bottom:18px;font-size:13px;">Twoje zapisane pomiary, trendy i porównanie zmian w czasie.</p>
-    """)
-    st.caption("Pomiary są zapisywane na Twoim koncie BODYLAB i pozostają dostępne po ponownym zalogowaniu.")
+    st.markdown("### Zapis bieżącego pomiaru")
+    st.caption("Raport przedstawia ostatnią wykonaną analizę. Zapisanie wyniku dodaje go do historii konta.")
+
+    result_signature = tuple(result.get(key) for key in (
+        "weight", "height", "waist", "hips", "bmi", "whtr", "whr",
+        "bmr", "tdee", "calorie_target", "goal", "activity_level"
+    ))
+    if st.session_state.get("bodylab_saved_result_signature") == result_signature:
+        st.success("Ten wynik analizy został już zapisany na Twoim koncie.")
+    else:
+        st.info("Wynik bieżącej analizy nie jest jeszcze zapisany w historii. Zapisz go, jeśli chcesz zachować go na swoim koncie.")
 
     if st.button("ZAPISZ AKTUALNY POMIAR", type="primary", use_container_width=True):
         snapshot = {
@@ -2249,78 +2256,11 @@ if result:
         }
         try:
             supabase_client.table("measurements").insert(snapshot).execute()
-            st.success("Pomiar został trwale zapisany na Twoim koncie.")
+            st.session_state["bodylab_saved_result_signature"] = result_signature
             st.rerun()
         except Exception:
             st.error("Nie udało się zapisać pomiaru. Sprawdź połączenie i uprawnienia bazy danych.")
 
-    try:
-        db_history = fetch_measurement_history(supabase_client, st.session_state["bodylab_user_id"])
-    except Exception:
-        db_history = []
-        st.error("Nie udało się pobrać historii z Supabase. Spróbuj odświeżyć aplikację.")
-
-    if db_history:
-        history_df = pd.DataFrame([measurement_to_display(row) for row in db_history])
-        st.markdown(f"**Liczba zapisanych pomiarów: {len(db_history)}**")
-
-        if len(db_history) >= 2:
-            first = history_df.iloc[0]
-            latest = history_df.iloc[-1]
-            comparison_cols = st.columns(3)
-            comparisons = [
-                ("Zmiana masy", latest["Masa ciała (kg)"] - first["Masa ciała (kg)"], "kg"),
-                ("Zmiana obwodu talii", latest["Obwód talii (cm)"] - first["Obwód talii (cm)"], "cm"),
-                ("Zmiana BMI", latest["BMI"] - first["BMI"], "pkt"),
-            ]
-            for col, (label, delta, unit) in zip(comparison_cols, comparisons):
-                with col:
-                    st.metric(label, f"{delta:+.2f} {unit}", help="Porównanie ostatniego zapisu z pierwszym.")
-            st.caption("Zmiana jest obliczana względem pierwszego zapisanego pomiaru, a nie względem poprzedniego.")
-            st.markdown("**Trend masy ciała**")
-            st.line_chart(history_df.set_index("Data zapisu")[["Masa ciała (kg)"]])
-            st.markdown("**Trend BMI**")
-            st.line_chart(history_df.set_index("Data zapisu")[["BMI"]])
-            st.markdown("**Trend obwodu talii**")
-            st.line_chart(history_df.set_index("Data zapisu")[["Obwód talii (cm)"]])
-        else:
-            st.info("Zapisz co najmniej dwa pomiary, aby zobaczyć wykresy trendu i porównanie zmian.")
-
-        with st.expander("Zobacz tabelę zapisanych pomiarów"):
-            st.dataframe(history_df, use_container_width=True, hide_index=True)
-
-        csv_buffer = io.StringIO()
-        history_df.to_csv(csv_buffer, index=False, sep=";", decimal=",")
-        st.download_button(
-            "POBIERZ HISTORIĘ POMIARÓW (CSV)",
-            data="\ufeff" + csv_buffer.getvalue(),
-            file_name="bodylab_historia_pomiarow.csv",
-            mime="text/csv",
-            use_container_width=True
-        )
-
-        with st.expander("Usuń zapisany pomiar"):
-            delete_options = {
-                f"{row.get('created_at', '')[:19]} | {row.get('weight')} kg | BMI {row.get('bmi')}": row["id"]
-                for row in reversed(db_history)
-            }
-            selected_label = st.selectbox("Wybierz pomiar do usunięcia", list(delete_options.keys()))
-            confirm_delete = st.checkbox("Potwierdzam, że chcę trwale usunąć wybrany pomiar.")
-            if st.button("USUŃ WYBRANY POMIAR", disabled=not confirm_delete):
-                try:
-                    (supabase_client.table("measurements")
-                     .delete()
-                     .eq("id", delete_options[selected_label])
-                     .eq("user_id", st.session_state["bodylab_user_id"])
-                     .execute())
-                    st.success("Pomiar został usunięty.")
-                    st.rerun()
-                except Exception:
-                    st.error("Nie udało się usunąć pomiaru.")
-    else:
-        st.info("Nie zapisano jeszcze żadnego pomiaru. Kliknij przycisk powyżej, aby rozpocząć historię.")
-
-    st.caption("Historia jest przechowywana w bazie Supabase. Dostęp do rekordów jest dodatkowo ograniczony politykami RLS do zalogowanego użytkownika.")
 
     with st.expander("Jak interpretować BMR i TDEE?"):
         st.markdown(
@@ -2455,6 +2395,85 @@ if result:
     </div>
     """)
 
+
+# ============================================================
+# HISTORIA POMIARÓW – DOSTĘPNA NIEZALEŻNIE OD RAPORTU
+# ============================================================
+
+render_html("""
+<div id="bodylab-progress"></div>
+<div class="section-title">Postępy i historia pomiarów</div>
+<p style="color:#748399;margin-top:-10px;margin-bottom:18px;font-size:13px;">Twoje zapisane pomiary, trendy i porównanie zmian w czasie.</p>
+""")
+st.caption("Historia zapisanych pomiarów jest dostępna niezależnie od wykonania nowej analizy.")
+
+try:
+    db_history = fetch_measurement_history(supabase_client, st.session_state["bodylab_user_id"])
+except Exception:
+    db_history = []
+    st.error("Nie udało się pobrać historii z Supabase. Spróbuj odświeżyć aplikację.")
+
+if db_history:
+    history_df = pd.DataFrame([measurement_to_display(row) for row in db_history])
+    st.markdown(f"**Liczba zapisanych pomiarów: {len(db_history)}**")
+
+    if len(db_history) >= 2:
+        first = history_df.iloc[0]
+        latest = history_df.iloc[-1]
+        comparison_cols = st.columns(3)
+        comparisons = [
+            ("Zmiana masy", latest["Masa ciała (kg)"] - first["Masa ciała (kg)"], "kg"),
+            ("Zmiana obwodu talii", latest["Obwód talii (cm)"] - first["Obwód talii (cm)"], "cm"),
+            ("Zmiana BMI", latest["BMI"] - first["BMI"], "pkt"),
+        ]
+        for col, (label, delta, unit) in zip(comparison_cols, comparisons):
+            with col:
+                st.metric(label, f"{delta:+.2f} {unit}", help="Porównanie ostatniego zapisu z pierwszym.")
+        st.caption("Zmiana jest obliczana względem pierwszego zapisanego pomiaru, a nie względem poprzedniego.")
+        st.markdown("**Trend masy ciała**")
+        st.line_chart(history_df.set_index("Data zapisu")[["Masa ciała (kg)"]])
+        st.markdown("**Trend BMI**")
+        st.line_chart(history_df.set_index("Data zapisu")[["BMI"]])
+        st.markdown("**Trend obwodu talii**")
+        st.line_chart(history_df.set_index("Data zapisu")[["Obwód talii (cm)"]])
+    else:
+        st.info("Zapisz co najmniej dwa pomiary, aby zobaczyć wykresy trendu i porównanie zmian.")
+
+    with st.expander("Zobacz tabelę zapisanych pomiarów"):
+        st.dataframe(history_df, use_container_width=True, hide_index=True)
+
+    csv_buffer = io.StringIO()
+    history_df.to_csv(csv_buffer, index=False, sep=";", decimal=",")
+    st.download_button(
+        "POBIERZ HISTORIĘ POMIARÓW (CSV)",
+        data="\ufeff" + csv_buffer.getvalue(),
+        file_name="bodylab_historia_pomiarow.csv",
+        mime="text/csv",
+        use_container_width=True
+    )
+
+    with st.expander("Usuń zapisany pomiar"):
+        delete_options = {
+            f"{row.get('created_at', '')[:19]} | {row.get('weight')} kg | BMI {row.get('bmi')}": row["id"]
+            for row in reversed(db_history)
+        }
+        selected_label = st.selectbox("Wybierz pomiar do usunięcia", list(delete_options.keys()))
+        confirm_delete = st.checkbox("Potwierdzam, że chcę trwale usunąć wybrany pomiar.")
+        if st.button("USUŃ WYBRANY POMIAR", disabled=not confirm_delete):
+            try:
+                (supabase_client.table("measurements")
+                 .delete()
+                 .eq("id", delete_options[selected_label])
+                 .eq("user_id", st.session_state["bodylab_user_id"])
+                 .execute())
+                st.success("Pomiar został usunięty.")
+                st.rerun()
+            except Exception:
+                st.error("Nie udało się usunąć pomiaru.")
+else:
+    st.info("Nie masz jeszcze zapisanych pomiarów. Wykonaj nową analizę i zapisz wynik, aby rozpocząć historię.")
+
+st.caption("Historia jest przechowywana w bazie Supabase. Dostęp do rekordów jest dodatkowo ograniczony politykami RLS do zalogowanego użytkownika.")
 
 # ============================================================
 # 22. STOPKA
