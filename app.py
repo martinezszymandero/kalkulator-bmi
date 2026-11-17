@@ -1326,23 +1326,11 @@ if dashboard_history:
         created_label = "brak daty"
     st.caption(f"Ostatni zapisany pomiar: {created_label} · Łącznie zapisanych pomiarów: {len(dashboard_history)}")
 
-    if previous_measurement is not None:
-        st.markdown("**Zmiana od poprzedniego pomiaru**")
-        change_cols = st.columns(3)
-        for col, (label, field, unit) in zip(change_cols, [("Masa ciała", "weight", "kg"), ("Obwód talii", "waist", "cm"), ("BMI", "bmi", "pkt")]):
-            delta = float(latest_measurement[field]) - float(previous_measurement[field])
-            with col:
-                st.metric(label, f"{float(latest_measurement[field]):.2f} {unit}", delta=f"{delta:+.2f} {unit}")
-
     if len(dashboard_history) >= 2:
-        st.markdown("**Trend masy ciała**")
-        trend_df = pd.DataFrame(dashboard_history)
-        trend_df["Data"] = pd.to_datetime(trend_df["created_at"], errors="coerce", utc=True).dt.tz_convert(None)
-        trend_df = trend_df.dropna(subset=["Data"]).set_index("Data")
-        if not trend_df.empty:
-            st.line_chart(trend_df[["weight"]].rename(columns={"weight": "Masa ciała (kg)"}), use_container_width=True)
-        else:
-            st.caption("Daty zapisanych pomiarów nie pozwalają obecnie narysować wykresu.")
+        st.caption(
+            "Zmiany względem poprzedniego zapisu widoczne są przy wskaźnikach powyżej. "
+            "Pełne wykresy i długoterminowe trendy znajdziesz w historii pomiarów."
+        )
     else:
         st.info("Masz już pierwszy zapisany pomiar. Kolejny pozwoli BODYLAB pokazać zmiany i trendy.")
 
@@ -1869,25 +1857,11 @@ if result:
     </div>
     """)
 
-    def render_analysis_section(title, section):
-        st.markdown(f"**{title}**")
-        if section["status"] == "insufficient_data":
-            st.info("Za mało danych, aby przygotować pełną analizę tego obszaru.")
-        findings = section.get("findings", [])
-        if not findings:
-            st.caption("Brak dodatkowych obserwacji dla tego obszaru.")
-        for finding in findings:
-            st.markdown(f"**{finding['title']}**  \n{finding['description']}")
-
-    analysis_cols = st.columns(3)
-    analysis_sections = [
-        ("Parametry ciała", smart["body_metrics"]),
-        ("Profil energetyczny", smart["energy_profile"]),
-        ("Analiza postępów", smart["progress_analysis"]),
-    ]
-    for col, (section_title, section_data) in zip(analysis_cols, analysis_sections):
-        with col:
-            render_analysis_section(section_title, section_data)
+    st.caption(
+        "To syntetyczna interpretacja całego zestawu danych. "
+        "Szczegółowe wyniki poszczególnych obszarów przedstawiono "
+        "w dedykowanych modułach poniżej."
+    )
 
     # --------------------------------------------------------
     # BODY COMPOSITION INTELLIGENCE – INTERPRETACJA WSKAŹNIKÓW
