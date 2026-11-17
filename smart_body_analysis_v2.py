@@ -17,9 +17,10 @@ from progress_intelligence import analyze_progress
 from weight_intelligence import analyze_weight
 from body_composition_intelligence import analyze_body_composition
 from lifestyle_intelligence import analyze_lifestyle
+from rule_engine import generate_insights
 
 
-VERSION = "2.4"
+VERSION = "2.5"
 
 
 def _number(value: Any, field: str, *, minimum: float | None = None) -> float | None:
@@ -561,7 +562,7 @@ def analyze_body(profile: dict[str, Any]) -> dict[str, Any]:
         summary_title = "Potrzeba więcej danych"
         summary_description = "Dostępne informacje nie wystarczają do pełnej analizy. Raport pokazuje tylko te obszary, które można ocenić."
 
-    return {
+    analysis_result = {
         "version": VERSION,
         "overall_summary": {
             "title": summary_title,
@@ -579,6 +580,12 @@ def analyze_body(profile: dict[str, Any]) -> dict[str, Any]:
         "recommendations": recommendations,
         "limitations": limitations,
     }
+
+    # Rule Engine consumes the completed outputs of existing modules.
+    # It does not recalculate metrics or alter the original analysis sections.
+    analysis_result["rule_engine"] = generate_insights(analysis_result)
+
+    return analysis_result
 
 
 # Convenient alias for callers who prefer the longer function name.
