@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Any
 
-VERSION = "1.0"
+VERSION = "2.0"
 
 _PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
 
@@ -48,12 +48,6 @@ def _add(
     items.append(item)
 
 
-def _available_metric(metrics: Any, key: str) -> dict[str, Any]:
-    if not isinstance(metrics, dict):
-        return {}
-    metric = metrics.get(key)
-    return metric if isinstance(metric, dict) else {}
-
 
 def generate_insights(analysis: dict[str, Any]) -> dict[str, Any]:
     """
@@ -70,10 +64,6 @@ def generate_insights(analysis: dict[str, Any]) -> dict[str, Any]:
 
     composition = analysis.get("body_composition_intelligence")
     composition = composition if isinstance(composition, dict) else {}
-    metrics = composition.get("metrics", {})
-    bmi = _available_metric(metrics, "bmi")
-    whtr = _available_metric(metrics, "whtr")
-    whr = _available_metric(metrics, "whr")
     consistency = _text(composition.get("consistency"))
 
     # One combined composition insight rather than repeating each metric signal.
@@ -123,29 +113,6 @@ def generate_insights(analysis: dict[str, Any]) -> dict[str, Any]:
             classification="FACT",
             priority="low",
             sources=["body_composition_intelligence"],
-        )
-
-    # Highlight BMI / central-indicator disagreement as a distinct context issue.
-    signals = composition.get("signals", [])
-    if isinstance(signals, list) and any(
-        "nie dają w pełni zgodnego obrazu" in _text(signal).lower()
-        or "nie należy opierać oceny na jednym wskaźniku" in _text(signal).lower()
-        for signal in signals
-    ):
-        _add(
-            insights,
-            insight_id="composition_bmi_disagreement",
-            title="BMI i wskaźniki obwodowe pokazują różne aspekty",
-            summary=(
-                "BMI i wskaźniki obwodowe nie dają w pełni zgodnego obrazu. "
-                "Opisują różne cechy i nie powinny być traktowane zamiennie."
-            ),
-            classification="FACT",
-            priority="medium",
-            sources=["body_composition_intelligence"],
-            recommendation=(
-                "Interpretuj wskaźniki łącznie, z uwzględnieniem ograniczeń każdego z nich."
-            ),
         )
 
     # Weight module owns direction-vs-goal interpretation.
@@ -202,7 +169,7 @@ def generate_insights(analysis: dict[str, Any]) -> dict[str, Any]:
     progress = progress if isinstance(progress, dict) else {}
     stagnation = progress.get("stagnation")
     stagnation = stagnation if isinstance(stagnation, dict) else {}
-    if stagnation.get("status") == "possible_stability":
+    if stagnation.get("status") == "possible_stability" and alignment != "stable":
         _add(
             insights,
             insight_id="progress_possible_stability",
@@ -223,35 +190,6 @@ def generate_insights(analysis: dict[str, Any]) -> dict[str, Any]:
         # Do not create a separate warning: missing history is surfaced only
         # when no other meaningful insight can be generated.
         pass
-
-    # Lifestyle module supplies general guidance; do not turn it into a health claim.
-    lifestyle = analysis.get("lifestyle_intelligence")
-    lifestyle = lifestyle if isinstance(lifestyle, dict) else {}
-    activity = lifestyle.get("activity_guidance")
-    activity = activity if isinstance(activity, dict) else {}
-    goal_guidance = lifestyle.get("goal_guidance")
-    goal_guidance = goal_guidance if isinstance(goal_guidance, dict) else {}
-
-    lifestyle_recommendations = []
-    if _text(activity.get("recommendation")):
-        lifestyle_recommendations.append(_text(activity.get("recommendation")))
-    if _text(goal_guidance.get("recommendation")):
-        lifestyle_recommendations.append(_text(goal_guidance.get("recommendation")))
-
-    if lifestyle_recommendations:
-        _add(
-            insights,
-            insight_id="lifestyle_guidance",
-            title="Wskazówki dotyczące aktywności i celu",
-            summary=(
-                "Dostępne wskazówki mają charakter ogólny i opierają się "
-                "na deklarowanym poziomie aktywności oraz wybranym celu."
-            ),
-            classification="RECOMMENDATION",
-            priority="low",
-            sources=["lifestyle_intelligence"],
-            recommendation=" ".join(lifestyle_recommendations),
-        )
 
     # Energy checks are represented only when the existing engine explicitly
     # reports an inconsistency; this module does not recalculate calories.
@@ -307,8 +245,10 @@ def generate_insights(analysis: dict[str, Any]) -> dict[str, Any]:
         )
     )
 
+    insights = insights[:3]
+
     return {
-        "module": "BODYLAB Rule Engine + Insight Generator",
+        "module": "BODYLAB Insight Synthesis",
         "version": VERSION,
         "status": "available" if insights and insights[0]["id"] != "insufficient_data" else "insufficient_data",
         "insight_count": len(insights),
@@ -322,7 +262,7 @@ def generate_insights(analysis: dict[str, Any]) -> dict[str, Any]:
             "Moduł łączy wyniki istniejących analiz; nie przelicza ponownie wskaźników.",
             "Brak danych nie jest interpretowany jako zero ani jako wynik prawidłowy.",
             "Wnioski mają charakter informacyjny i edukacyjny, nie diagnostyczny.",
-            "Priorytet określa kolejność prezentacji, a nie poziom ryzyka medycznego.",
+            "Wnioski są wybierane tak, aby ograniczać powtórzenia między modułami.",
         ],
     }
 
