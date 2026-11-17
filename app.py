@@ -1888,6 +1888,92 @@ if result:
             render_analysis_section(section_title, section_data)
 
     # --------------------------------------------------------
+    # BODY COMPOSITION INTELLIGENCE – INTERPRETACJA WSKAŹNIKÓW
+    # --------------------------------------------------------
+
+    body_composition = smart.get("body_composition_intelligence", {})
+
+    st.divider()
+    st.markdown("### Body Composition Intelligence")
+    st.caption(
+        "Łączna, regułowa interpretacja BMI, WHtR i WHR. "
+        "Moduł pokazuje zgodność lub rozbieżności między wskaźnikami; "
+        "nie określa bezpośrednio procentowej zawartości tkanki tłuszczowej."
+    )
+
+    if not body_composition:
+        st.info(
+            "Moduł Body Composition Intelligence nie zwrócił danych. "
+            "Sprawdź, czy zaktualizowany silnik analizy został wdrożony."
+        )
+    else:
+        consistency_labels = {
+            "convergent_signal": "Zgodny sygnał wskaźników obwodowych",
+            "no_elevated_central_signal": "Brak podwyższonego sygnału obwodowego",
+            "mixed_central_signal": "Niejednoznaczny obraz wskaźników obwodowych",
+            "partial_central_assessment": "Częściowa ocena wskaźników obwodowych",
+            "not_assessed": "Nie oceniono zgodności wskaźników",
+            "insufficient_data": "Niewystarczające dane",
+        }
+
+        st.markdown("**Podsumowanie interpretacji**")
+        st.markdown(body_composition.get(
+            "overall_summary",
+            "Brak podsumowania dla dostępnych danych."
+        ))
+        st.caption(
+            "Spójność wyników: "
+            + consistency_labels.get(
+                body_composition.get("consistency"),
+                "Nie określono"
+            )
+        )
+
+        composition_metrics = body_composition.get("metrics", {})
+        metric_labels = [
+            ("bmi", "BMI"),
+            ("whtr", "WHtR"),
+            ("whr", "WHR"),
+        ]
+        metric_cols = st.columns(3)
+
+        for col, (metric_key, metric_title) in zip(metric_cols, metric_labels):
+            metric_data = composition_metrics.get(metric_key, {})
+            with col:
+                st.markdown(f"**{metric_title}**")
+                metric_value = metric_data.get("value")
+                if metric_value is None:
+                    st.metric(metric_title, "—")
+                else:
+                    decimals = 2 if metric_key == "bmi" else 3
+                    st.metric(metric_title, f"{metric_value:.{decimals}f}")
+                st.caption(metric_data.get("label", "Brak danych"))
+                st.write(metric_data.get(
+                    "interpretation",
+                    "Brak interpretacji dla tego wskaźnika."
+                ))
+                if metric_data.get("status") == "needs_reference":
+                    st.info("Do pełnej interpretacji potrzebny jest punkt odniesienia.")
+
+        signals = body_composition.get("signals", [])
+        st.markdown("**Najważniejsze sygnały**")
+        if signals:
+            for signal in signals:
+                st.markdown(f"- {signal}")
+        else:
+            st.caption("Brak dodatkowych sygnałów dla dostępnych danych.")
+
+        composition_limitations = body_composition.get("limitations", [])
+        if composition_limitations:
+            with st.expander("Ograniczenia Body Composition Intelligence"):
+                for limitation in composition_limitations:
+                    st.markdown(f"- {limitation}")
+
+        disclaimer = body_composition.get("disclaimer")
+        if disclaimer:
+            st.caption(disclaimer)
+
+    # --------------------------------------------------------
     # WEIGHT INTELLIGENCE – INTERPRETACJA ZMIAN MASY
     # --------------------------------------------------------
 
