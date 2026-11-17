@@ -1269,7 +1269,7 @@ st.sidebar.markdown("""
   <a href="#bodylab-body"><span class="nav-dot"></span> Analiza ciała</a>
   <a href="#bodylab-smart"><span class="nav-dot"></span> Smart Body Analysis</a>
   <a href="#bodylab-lifestyle"><span class="nav-dot"></span> Lifestyle Intelligence</a>
-  <a href="#bodylab-rule-engine"><span class="nav-dot"></span> Rule Engine Insights</a>
+  <a href="#bodylab-rule-engine"><span class="nav-dot"></span> Podsumowanie BODYLAB</a>
   <a href="#bodylab-energy"><span class="nav-dot"></span> Profil energetyczny</a>
   <a href="#bodylab-progress"><span class="nav-dot"></span> Postępy i historia pomiarów</a>
 </div>
@@ -2109,7 +2109,7 @@ if result:
             st.caption(lifestyle_disclaimer)
 
     # --------------------------------------------------------
-    # RULE ENGINE – SYNTEZA WNIOSKÓW Z MODUŁÓW INTELLIGENCE
+    # BODYLAB – KRÓTKIE PODSUMOWANIE ANALIZY
     # --------------------------------------------------------
 
     rule_engine = smart.get("rule_engine", {})
@@ -2117,81 +2117,49 @@ if result:
     st.divider()
     render_html("""
     <div id="bodylab-rule-engine"></div>
-    <div class="section-title">Rule Engine – Intelligent Insights</div>
+    <div class="section-title">Podsumowanie BODYLAB</div>
     <p style="color:#748399;margin-top:-10px;margin-bottom:18px;font-size:13px;">
-        Zintegrowana synteza wniosków z modułów BODYLAB. Każdy wniosek
-        wskazuje, czy jest faktem, szacunkiem czy rekomendacją.
+        Najważniejsze wnioski wynikające z dostępnych pomiarów i analiz.
     </p>
     """)
 
-    classification_labels = {
-        "FACT": "FAKT",
-        "ESTIMATE": "SZACUNEK",
-        "RECOMMENDATION": "REKOMENDACJA",
-    }
-    priority_labels = {
-        "high": "Wysoki priorytet prezentacji",
-        "medium": "Średni priorytet prezentacji",
-        "low": "Niski priorytet prezentacji",
-    }
-
     if not rule_engine:
         st.info(
-            "Rule Engine nie zwrócił danych. Sprawdź, czy wersja 2.5 "
-            "silnika Smart Body Analysis oraz plik rule_engine.py "
-            "znajdują się w repozytorium."
+            "Podsumowanie nie jest obecnie dostępne. Sprawdź konfigurację "
+            "silnika analizy BODYLAB."
         )
     elif rule_engine.get("status") == "insufficient_data":
         st.info(
-            "Dostępne dane są niewystarczające do wygenerowania "
-            "dodatkowych wniosków. Zapisz kolejne pomiary lub uzupełnij "
-            "brakujące parametry."
+            "Potrzeba więcej danych, aby połączyć wyniki w wiarygodne wnioski. "
+            "Zapisz kolejne pomiary i uzupełnij dostępne dane profilu."
         )
     else:
         insights = rule_engine.get("insights", [])
         if not insights:
-            st.info("Rule Engine nie wygenerował dodatkowych wniosków dla dostępnych danych.")
+            st.info("Na podstawie dostępnych danych nie ma dodatkowych wniosków.")
+        else:
+            for index, insight in enumerate(insights[:3]):
+                title = insight.get("title", "Wniosek BODYLAB")
+                summary_text = insight.get("summary", "")
+                recommendation = insight.get("recommendation")
 
-        for insight in insights:
-            classification = insight.get("classification", "ESTIMATE")
-            priority = insight.get("priority", "low")
-            title = insight.get("title", "Wniosek BODYLAB")
-            summary_text = insight.get("summary", "Brak opisu wniosku.")
+                with st.container(border=True):
+                    if index == 0:
+                        st.caption("NAJWAŻNIEJSZY WNIOSEK")
+                    elif index == 1:
+                        st.caption("DODATKOWA OBSERWACJA")
+                    else:
+                        st.caption("CO WARTO WZIĄĆ POD UWAGĘ")
 
-            st.markdown(f"**{title}**")
-            st.caption(
-                f"{classification_labels.get(classification, classification)}"
-                f" · {priority_labels.get(priority, 'Priorytet nieokreślony')}"
-            )
-            st.write(summary_text)
-
-            recommendation = insight.get("recommendation")
-            if recommendation:
-                st.markdown(f"**Sugerowany kolejny krok:** {recommendation}")
-
-            sources = insight.get("sources", [])
-            if sources:
-                st.caption("Źródła wniosku: " + ", ".join(str(source) for source in sources))
-
-            st.divider()
-
-    rule_limitations = rule_engine.get("limitations", []) if rule_engine else []
-    if rule_limitations:
-        with st.expander("Ograniczenia Rule Engine"):
-            for limitation in rule_limitations:
-                st.markdown(f"- {limitation}")
-
-    legend = rule_engine.get("classification_legend", {}) if rule_engine else {}
-    if legend:
-        with st.expander("Jak czytać klasyfikację wniosków"):
-            for key, description in legend.items():
-                st.markdown(
-                    f"**{classification_labels.get(key, key)}** — {description}"
-                )
+                    st.markdown(f"**{title}**")
+                    if summary_text:
+                        st.write(summary_text)
+                    if recommendation:
+                        st.markdown(f"**Co dalej?** {recommendation}")
 
     st.caption(
-        "Priorytet określa kolejność prezentacji wniosków, a nie poziom "
-        "zagrożenia medycznego. Rule Engine nie stawia diagnoz."
+        "Podsumowanie ma charakter informacyjny i edukacyjny. "
+        "Nie stanowi diagnozy ani indywidualnej porady medycznej."
     )
 
     def render_finding_list(title, findings, empty_message):
