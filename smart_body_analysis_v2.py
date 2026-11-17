@@ -9,12 +9,12 @@ diagnostic tool and does not assign a composite "body score".
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from math import isfinite
 from typing import Any
 
 
-VERSION = "2.1"
+VERSION = "2.2"
 
 
 def _number(value: Any, field: str, *, minimum: float | None = None) -> float | None:
@@ -46,18 +46,36 @@ def _normalise_sex(value: Any) -> str | None:
 
 
 def _parse_date(value: Any) -> datetime | None:
+    """
+    Parse a measurement date and normalize it to timezone-aware UTC.
+
+    Naive dates/timestamps are treated as UTC because database timestamps
+    are expected to represent a single shared timeline. This guarantees
+    that mixed ISO strings, date objects, and datetime objects can be
+    sorted and subtracted safely.
+    """
     if value is None or value == "":
         return None
+
+    parsed: datetime | None = None
+
     if isinstance(value, datetime):
-        return value
-    if isinstance(value, date):
-        return datetime.combine(value, datetime.min.time())
-    if isinstance(value, str):
+        parsed = value
+    elif isinstance(value, date):
+        parsed = datetime.combine(value, datetime.min.time())
+    elif isinstance(value, str):
         try:
-            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
         except ValueError:
             return None
-    return None
+
+    if parsed is None:
+        return None
+
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        return parsed.replace(tzinfo=timezone.utc)
+
+    return parsed.astimezone(timezone.utc)
 
 
 def _finding(title: str, description: str, level: str = "info") -> dict[str, str]:
