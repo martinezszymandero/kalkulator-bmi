@@ -64,11 +64,22 @@ def _bmi_result(value):
             "interpretation": f"Wartość BMI mieści się w kategorii: {label.lower()}."}
 
 
-def _whtr_result(value):
+def _whtr_result(value, bmi):
     if value is None:
         return {"value": None, "status": "insufficient_data",
                 "label": "Brak danych",
                 "interpretation": "Nie podano prawidłowej wartości WHtR."}
+    if bmi is not None and bmi >= 35:
+        return {
+            "value": round(value, 3), "status": "limited",
+            "label": "Ograniczona interpretacja",
+            "interpretation": (
+                "Przy BMI równym lub wyższym niż 35 BODYLAB nie stosuje "
+                "standardowej klasyfikacji WHtR. Wynik pozostaje widoczny, "
+                "ale nie jest uwzględniany w ocenie zgodności wskaźników. "
+                "Wskazana jest indywidualna ocena specjalistyczna."
+            ),
+        }
     elevated = value >= 0.5
     return {
         "value": round(value, 3), "status": "available",
@@ -119,13 +130,14 @@ def analyze_body_composition(bmi, whtr, whr, sex=None):
 
     metrics = {
         "bmi": _bmi_result(bmi_v),
-        "whtr": _whtr_result(whtr_v),
+        "whtr": _whtr_result(whtr_v, bmi_v),
         "whr": _whr_result(whr_v, sex_v),
     }
     available = [k for k, v in metrics.items() if v["status"] == "available"]
 
     central = []
-    if whtr_v is not None:
+    whtr_interpretable = whtr_v is not None and not (bmi_v is not None and bmi_v >= 35)
+    if whtr_interpretable:
         central.append(whtr_v >= 0.5)
     if whr_v is not None and sex_v is not None:
         central.append(whr_v >= WHR_THRESHOLDS[sex_v])
@@ -135,7 +147,7 @@ def analyze_body_composition(bmi, whtr, whr, sex=None):
         signals.append("BMI znajduje się w kategorii nadwagi lub otyłości.")
     elif bmi_v is not None and bmi_v < 18.5:
         signals.append("BMI znajduje się poniżej zakresu masy prawidłowej.")
-    if whtr_v is not None and whtr_v >= 0.5:
+    if whtr_interpretable and whtr_v >= 0.5:
         signals.append("WHtR osiąga lub przekracza orientacyjny próg 0,50.")
     if whr_v is not None and sex_v and whr_v >= WHR_THRESHOLDS[sex_v]:
         signals.append("WHR osiąga lub przekracza orientacyjny próg dla podanej płci.")
