@@ -1159,7 +1159,7 @@ st.sidebar.markdown("""
   <a href="#bodylab-energy"><span class="nav-dot"></span> Profil energetyczny</a>
   <a href="#bodylab-progress"><span class="nav-dot"></span> Postępy i historia pomiarów</a>
 </div>
-<div class="bl-sidebar-foot">Twoje dane. Twoje pomiary. Twoja analiza.<br>Wersja testowa · BODYLAB 3.0</div>
+<div class="bl-sidebar-foot">Twoje dane. Twoje pomiary. Twoja analiza.<br>Wersja testowa · BODYLAB 3.1</div>
 """, unsafe_allow_html=True)
 
 render_html("""
