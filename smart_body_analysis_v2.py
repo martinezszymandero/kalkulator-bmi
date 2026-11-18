@@ -1,6 +1,6 @@
 
 """
-BODYLAB Smart Body Analysis 2.2
+BODYLAB Smart Body Analysis 2.5
 Independent analysis engine. Pure Python; no Streamlit/Supabase dependencies.
 
 This module provides transparent, rule-based observations. It is not a medical
@@ -105,14 +105,11 @@ def _history_rows(history: Any) -> list[dict[str, Any]]:
 
         clean = {"created_at": parsed}
         for key in ("weight", "bmi", "waist"):
-            value = _number(
+            clean[key] = _number(
                 row.get(key),
                 f"history[{index}].{key}",
                 minimum=0
             )
-            # Zero is not a valid body measurement; treat legacy/invalid values
-            # as missing so every analysis module applies the same rule.
-            clean[key] = value if value is not None and value > 0 else None
         rows.append(clean)
 
     return sorted(rows, key=lambda item: item["created_at"])
