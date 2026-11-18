@@ -1029,8 +1029,14 @@ def render_auth_screen(client):
                     if response.session is None:
                         st.success("Konto zostało utworzone. Sprawdź skrzynkę e-mail i potwierdź adres, a następnie zaloguj się.")
                     else:
-                        st.success("Konto utworzone. Możesz już korzystać z BODYLAB.")
-                        st.rerun()
+                        user = response.user
+                        if user is None:
+                            st.error("Konto zostało utworzone, ale nie udało się uzyskać danych użytkownika. Zaloguj się ręcznie.")
+                        else:
+                            st.session_state["bodylab_user_id"] = user.id
+                            st.session_state["bodylab_user_email"] = user.email or new_email.strip()
+                            st.success("Konto utworzone. Możesz już korzystać z BODYLAB.")
+                            st.rerun()
                 except Exception as exc:
                     st.error("Supabase odrzucił rejestrację. Szczegóły błędu:")
                     st.code(str(exc))
