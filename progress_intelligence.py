@@ -46,7 +46,7 @@ def _number(value: Any) -> float | None:
         number = float(value)
     except (TypeError, ValueError):
         return None
-    return number if isfinite(number) and number >= 0 else None
+    return number if isfinite(number) and number > 0 else None
 
 
 def _clean_history(history: Any) -> list[dict[str, Any]]:
