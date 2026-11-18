@@ -37,7 +37,7 @@ st.markdown("""
 <style>
 
 /* ==========================================================
-   BODYLAB | HYBRID ANALYTICS DESIGN SYSTEM 2.1
+   BODYLAB | LEGACY CSS BASE LAYER (DESIGN SYSTEM 2.1)
    ========================================================== */
 
 :root {
@@ -382,7 +382,7 @@ hr {
 
 
 /* ==========================================================
-   BODYLAB 3.0 | DASHBOARD LAYOUT
+   BODYLAB | LEGACY DASHBOARD OVERRIDE LAYER (LAYOUT 3.0)
    ========================================================== */
 :root {
     --navy: #10243F;
