@@ -1,4 +1,5 @@
 
+import math
 import streamlit as st
 import pandas as pd
 import io
@@ -1093,29 +1094,41 @@ def fetch_measurement_history(client, user_id):
 
 
 def measurement_to_display(row):
-    """Mapuje rekord bazy na dotychczasowe polskie etykiety historii."""
+    """Mapuje rekord bazy na polskie etykiety, bez awarii przy brakach danych."""
+    def safe_number(value, cast=float):
+        if value is None or value == "":
+            return None
+        try:
+            number = cast(value)
+        except (TypeError, ValueError, OverflowError):
+            return None
+        if isinstance(number, float) and not math.isfinite(number):
+            return None
+        return number
+
     created = row.get("created_at", "")
     if created:
         try:
             created = datetime.fromisoformat(created.replace("Z", "+00:00")).astimezone().strftime("%Y-%m-%d %H:%M:%S %z")
-        except Exception:
-            pass
+        except (TypeError, ValueError, AttributeError):
+            created = str(created)
+
     return {
         "Data zapisu": created,
-        "Masa ciała (kg)": float(row["weight"]),
-        "Wzrost (cm)": float(row["height"]),
-        "Obwód talii (cm)": float(row["waist"]),
-        "Obwód bioder (cm)": float(row["hips"]),
-        "BMI": float(row["bmi"]),
-        "WHtR": float(row["whtr"]),
-        "WHR": float(row["whr"]),
-        "Płeć": row["sex"],
-        "Wiek (lata)": int(row["age"]),
-        "BMR (kcal/dzień)": int(row["bmr"]),
-        "TDEE (kcal/dzień)": int(row["tdee"]),
-        "Cel energetyczny": row["goal"],
-        "Cel kaloryczny (kcal/dzień)": int(row["calorie_target"]),
-        "Poziom aktywności": row["activity_level"],
+        "Masa ciała (kg)": safe_number(row.get("weight")),
+        "Wzrost (cm)": safe_number(row.get("height")),
+        "Obwód talii (cm)": safe_number(row.get("waist")),
+        "Obwód bioder (cm)": safe_number(row.get("hips")),
+        "BMI": safe_number(row.get("bmi")),
+        "WHtR": safe_number(row.get("whtr")),
+        "WHR": safe_number(row.get("whr")),
+        "Płeć": row.get("sex"),
+        "Wiek (lata)": safe_number(row.get("age"), int),
+        "BMR (kcal/dzień)": safe_number(row.get("bmr"), int),
+        "TDEE (kcal/dzień)": safe_number(row.get("tdee"), int),
+        "Cel energetyczny": row.get("goal"),
+        "Cel kaloryczny (kcal/dzień)": safe_number(row.get("calorie_target"), int),
+        "Poziom aktywności": row.get("activity_level"),
     }
 
 
@@ -2285,24 +2298,32 @@ if db_history:
     st.markdown(f"**Liczba zapisanych pomiarów: {len(db_history)}**")
 
     if len(db_history) >= 2:
-        first = history_df.iloc[0]
-        latest = history_df.iloc[-1]
-        comparison_cols = st.columns(3)
-        comparisons = [
-            ("Zmiana masy", latest["Masa ciała (kg)"] - first["Masa ciała (kg)"], "kg"),
-            ("Zmiana obwodu talii", latest["Obwód talii (cm)"] - first["Obwód talii (cm)"], "cm"),
-            ("Zmiana BMI", latest["BMI"] - first["BMI"], "pkt"),
+        comparison_specs = [
+            ("Zmiana masy", "Masa ciała (kg)", "kg"),
+            ("Zmiana obwodu talii", "Obwód talii (cm)", "cm"),
+            ("Zmiana BMI", "BMI", "pkt"),
         ]
-        for col, (label, delta, unit) in zip(comparison_cols, comparisons):
+        comparison_cols = st.columns(3)
+        for col, (label, field, unit) in zip(comparison_cols, comparison_specs):
+            valid_values = history_df[field].dropna()
             with col:
-                st.metric(label, f"{delta:+.2f} {unit}", help="Porównanie ostatniego zapisu z pierwszym.")
-        st.caption("Zmiana jest obliczana względem pierwszego zapisanego pomiaru, a nie względem poprzedniego.")
-        st.markdown("**Trend masy ciała**")
-        st.line_chart(history_df.set_index("Data zapisu")[["Masa ciała (kg)"]])
-        st.markdown("**Trend BMI**")
-        st.line_chart(history_df.set_index("Data zapisu")[["BMI"]])
-        st.markdown("**Trend obwodu talii**")
-        st.line_chart(history_df.set_index("Data zapisu")[["Obwód talii (cm)"]])
+                if len(valid_values) >= 2:
+                    delta = float(valid_values.iloc[-1]) - float(valid_values.iloc[0])
+                    st.metric(label, f"{delta:+.2f} {unit}", help="Porównanie pierwszego i ostatniego poprawnego zapisu dla tego wskaźnika.")
+                else:
+                    st.metric(label, "Brak danych")
+        st.caption("Każdy wskaźnik jest porównywany na podstawie własnych poprawnych zapisów. Brakujące lub nieprawidłowe wartości są pomijane.")
+        for label, field in [
+            ("Trend masy ciała", "Masa ciała (kg)"),
+            ("Trend BMI", "BMI"),
+            ("Trend obwodu talii", "Obwód talii (cm)"),
+        ]:
+            chart_data = history_df[["Data zapisu", field]].dropna(subset=[field])
+            if not chart_data.empty:
+                st.markdown(f"**{label}**")
+                st.line_chart(chart_data.set_index("Data zapisu"))
+            else:
+                st.caption(f"{label}: brak poprawnych danych do wykresu.")
     else:
         st.info("Zapisz co najmniej dwa pomiary, aby zobaczyć wykresy trendu i porównanie zmian.")
 
