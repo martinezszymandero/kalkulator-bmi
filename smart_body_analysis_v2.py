@@ -105,11 +105,14 @@ def _history_rows(history: Any) -> list[dict[str, Any]]:
 
         clean = {"created_at": parsed}
         for key in ("weight", "bmi", "waist"):
-            clean[key] = _number(
+            value = _number(
                 row.get(key),
                 f"history[{index}].{key}",
                 minimum=0
             )
+            # Zero is not a valid body measurement; treat legacy/invalid values
+            # as missing so every analysis module applies the same rule.
+            clean[key] = value if value is not None and value > 0 else None
         rows.append(clean)
 
     return sorted(rows, key=lambda item: item["created_at"])
