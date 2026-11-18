@@ -1,5 +1,5 @@
 """
-BODYLAB Rule Engine + Insight Generator 1.0
+BODYLAB Rule Engine + Insight Generator 2.0
 
 Combines already-computed BODYLAB module outputs into concise, prioritized
 insights. It does not recalculate metrics, diagnose, or infer missing data.
