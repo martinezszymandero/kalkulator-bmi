@@ -12,6 +12,10 @@ from typing import Any
 VERSION = "1.0"
 
 _ACTIVITY_GUIDANCE = {
+    "siedzący tryb życia": (
+        "Wybrany poziom aktywności wskazuje na siedzący tryb życia i małą ilość ruchu.",
+        "Jeśli jest to zgodne z Twoimi możliwościami, rozważ stopniowe włączanie codziennego ruchu, np. spacerów. Zacznij od poziomu, który możesz regularnie utrzymać.",
+    ),
     "niska aktywność": (
         "Wybrany poziom aktywności jest niski.",
         "Jeśli jest to zgodne z Twoimi możliwościami, rozważ stopniowe włączanie codziennego ruchu, np. spacerów. Zacznij od poziomu, który możesz regularnie utrzymać.",
@@ -28,13 +32,13 @@ _ACTIVITY_GUIDANCE = {
         "Wybrany poziom aktywności odpowiada umiarkowanej aktywności.",
         "Dbaj o regularność i równowagę między ruchem a regeneracją. Nie zakładaj, że pojedynczy intensywny trening odzwierciedla typowy tydzień.",
     ),
-    "wysoka aktywność": (
-        "Wybrany poziom aktywności jest wysoki.",
-        "Zwracaj uwagę na regenerację i regularność. Zapotrzebowanie energetyczne w aplikacji jest szacunkiem, dlatego warto oceniać je w szerszym kontekście i nie traktować jako dokładnego pomiaru.",
-    ),
     "bardzo wysoka aktywność": (
         "Wybrany poziom aktywności jest bardzo wysoki.",
         "Przy dużej aktywności szczególnie istotne jest dopasowanie odpoczynku i odżywiania do obciążeń. Wartość TDEE pozostaje orientacyjnym oszacowaniem.",
+    ),
+    "wysoka aktywność": (
+        "Wybrany poziom aktywności jest wysoki.",
+        "Zwracaj uwagę na regenerację i regularność. Zapotrzebowanie energetyczne w aplikacji jest szacunkiem, dlatego warto oceniać je w szerszym kontekście i nie traktować jako dokładnego pomiaru.",
     ),
 }
 
