@@ -93,20 +93,33 @@ html, body, [class*="css"] {
 }
 .block-container {
     max-width: 1440px;
-    padding: 2rem 2.5rem 4rem;
+    /* Space reserved for the fixed account bar below Streamlit's toolbar. */
+    padding: 7rem 2.5rem 4rem;
 }
 
-/* Sticky header: logged-in user and logout remain available while scrolling. */
-.st-key-bodylab-sticky-header {
-    position: sticky;
-    top: 0;
-    z-index: 999;
-    background: rgba(8, 19, 33, .96);
-    border-bottom: 1px solid var(--bl-border);
+/* Fixed account bar: stays visible while the page scrolls.
+   Positioned below Streamlit's own header/toolbar ("Share"). */
+.st-key-bodylab-account-bar {
+    position: fixed;
+    top: 4rem;
+    left: max(17rem, calc((100vw - 1440px) / 2 + 17rem));
+    right: max(1rem, calc((100vw - 1440px) / 2 + 2.5rem));
+    z-index: 10000;
+    background: rgba(8, 19, 33, .98);
+    border: 1px solid var(--bl-border);
+    border-radius: 0 0 12px 12px;
     padding: .55rem .8rem .25rem;
-    margin: -1rem -.8rem 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .22);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+}
+
+/* Keep the account bar usable on narrower screens. */
+@media (max-width: 900px) {
+    .st-key-bodylab-account-bar {
+        left: 1rem;
+        right: 1rem;
+    }
 }
 [data-testid="stHeader"] {
     background: rgba(8, 19, 33, .92);
@@ -1299,8 +1312,8 @@ if "bodylab_user_id" not in st.session_state:
     render_auth_screen(supabase_client)
     st.stop()
 
-# Przyklejony nagłówek użytkownika i wylogowanie
-with st.container(key="bodylab-sticky-header"):
+# Stały pasek użytkownika i wylogowanie
+with st.container(key="bodylab-account-bar"):
     user_col, logout_col = st.columns([5, 1])
 
     with user_col:
