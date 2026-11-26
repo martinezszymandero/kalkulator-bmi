@@ -93,33 +93,23 @@ html, body, [class*="css"] {
 }
 .block-container {
     max-width: 1440px;
-    /* Space reserved for the fixed account bar below Streamlit's toolbar. */
-    padding: 7rem 2.5rem 4rem;
+    padding: 2.2rem 2.5rem 4rem;
 }
 
-/* Fixed account bar: stays visible while the page scrolls.
-   Positioned below Streamlit's own header/toolbar ("Share"). */
-.st-key-bodylab-account-bar {
-    position: fixed;
-    top: 4rem;
-    left: max(17rem, calc((100vw - 1440px) / 2 + 17rem));
-    right: max(1rem, calc((100vw - 1440px) / 2 + 2.5rem));
-    z-index: 10000;
-    background: rgba(8, 19, 33, .98);
-    border: 1px solid var(--bl-border);
-    border-radius: 0 0 12px 12px;
-    padding: .55rem .8rem .25rem;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, .22);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+/* Account controls in the sidebar. */
+[data-testid="stSidebar"] [data-testid="stButton"] > button {
+    background: var(--bl-cyan) !important;
+    border: 1px solid var(--bl-cyan) !important;
+    color: #06202B !important;
+    opacity: 1 !important;
+    min-height: 2.5rem !important;
+    font-weight: 700 !important;
 }
-
-/* Keep the account bar usable on narrower screens. */
-@media (max-width: 900px) {
-    .st-key-bodylab-account-bar {
-        left: 1rem;
-        right: 1rem;
-    }
+[data-testid="stSidebar"] [data-testid="stButton"] > button p,
+[data-testid="stSidebar"] [data-testid="stButton"] > button span {
+    color: #06202B !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 [data-testid="stHeader"] {
     background: rgba(8, 19, 33, .92);
@@ -1312,45 +1302,6 @@ if "bodylab_user_id" not in st.session_state:
     render_auth_screen(supabase_client)
     st.stop()
 
-# Stały pasek użytkownika i wylogowanie
-with st.container(key="bodylab-account-bar"):
-    user_col, logout_col = st.columns([5, 1])
-
-    with user_col:
-        st.caption(
-            f"Zalogowano jako: "
-            f"{st.session_state.get('bodylab_user_email', '')}"
-        )
-
-    with logout_col:
-        if st.button("Wyloguj", use_container_width=True):
-
-            # Próba zakończenia sesji Supabase
-            try:
-                supabase_client.auth.sign_out()
-            except Exception:
-                pass
-
-            # Czyszczenie danych użytkownika i wyników analizy
-            session_keys_to_clear = [
-                "bodylab_user_id",
-                "bodylab_user_email",
-                "bmi_result",
-                "supabase_client",
-                "login_email",
-                "login_password",
-                "signup_email",
-                "signup_password",
-                "signup_confirm_password",
-            ]
-
-            for key in session_keys_to_clear:
-                st.session_state.pop(key, None)
-
-            # Powrót do ekranu logowania
-            st.rerun()
-
-
 
 def fetch_measurement_history(client, user_id):
     """Pobiera wyłącznie pomiary bieżącego użytkownika (RLS jest dodatkową ochroną)."""
@@ -1404,6 +1355,40 @@ def measurement_to_display(row):
 # ============================================================
 
 # Logo i stała nawigacja boczna – odnośniki prowadzą do modułów dashboardu.
+# Informacja o koncie i wylogowanie – nad logo BODYLAB.
+st.sidebar.markdown(
+    '<div style="font-size:10px;font-weight:800;letter-spacing:1.1px;'
+    'color:#22D3EE;margin:0 0 6px 0;">ZALOGOWANY UŻYTKOWNIK</div>',
+    unsafe_allow_html=True
+)
+st.sidebar.markdown(
+    f'<div style="font-size:12px;color:#F1F5F9;'
+    f'overflow-wrap:anywhere;margin-bottom:10px;">'
+    f'{st.session_state.get("bodylab_user_email", "")}</div>',
+    unsafe_allow_html=True
+)
+
+if st.sidebar.button("WYLOGUJ", use_container_width=True, key="bodylab_sidebar_logout"):
+    try:
+        supabase_client.auth.sign_out()
+    except Exception:
+        pass
+
+    session_keys_to_clear = [
+        "bodylab_user_id", "bodylab_user_email", "bmi_result",
+        "supabase_client", "login_email", "login_password",
+        "signup_email", "signup_password", "signup_confirm_password",
+    ]
+    for key in session_keys_to_clear:
+        st.session_state.pop(key, None)
+
+    st.rerun()
+
+st.sidebar.markdown(
+    '<div style="height:1px;background:#263B54;margin:14px 0 18px 0;"></div>',
+    unsafe_allow_html=True
+)
+
 # Plik bodylab_logo.png musi znajdować się w głównym katalogu repozytorium.
 st.sidebar.image("bodylab_logo.png", width=112)
 st.sidebar.markdown("""
