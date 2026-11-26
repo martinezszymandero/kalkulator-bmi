@@ -95,6 +95,19 @@ html, body, [class*="css"] {
     max-width: 1440px;
     padding: 2rem 2.5rem 4rem;
 }
+
+/* Sticky header: logged-in user and logout remain available while scrolling. */
+.st-key-bodylab-sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: rgba(8, 19, 33, .96);
+    border-bottom: 1px solid var(--bl-border);
+    padding: .55rem .8rem .25rem;
+    margin: -1rem -.8rem 1rem;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
 [data-testid="stHeader"] {
     background: rgba(8, 19, 33, .92);
 }
@@ -1286,42 +1299,43 @@ if "bodylab_user_id" not in st.session_state:
     render_auth_screen(supabase_client)
     st.stop()
 
-# Nagłówek użytkownika i wylogowanie
-user_col, logout_col = st.columns([5, 1])
+# Przyklejony nagłówek użytkownika i wylogowanie
+with st.container(key="bodylab-sticky-header"):
+    user_col, logout_col = st.columns([5, 1])
 
-with user_col:
-    st.caption(
-        f"Zalogowano jako: "
-        f"{st.session_state.get('bodylab_user_email', '')}"
-    )
+    with user_col:
+        st.caption(
+            f"Zalogowano jako: "
+            f"{st.session_state.get('bodylab_user_email', '')}"
+        )
 
-with logout_col:
-    if st.button("Wyloguj", use_container_width=True):
+    with logout_col:
+        if st.button("Wyloguj", use_container_width=True):
 
-        # Próba zakończenia sesji Supabase
-        try:
-            supabase_client.auth.sign_out()
-        except Exception:
-            pass
+            # Próba zakończenia sesji Supabase
+            try:
+                supabase_client.auth.sign_out()
+            except Exception:
+                pass
 
-        # Czyszczenie danych użytkownika i wyników analizy
-        session_keys_to_clear = [
-            "bodylab_user_id",
-            "bodylab_user_email",
-            "bmi_result",
-            "supabase_client",
-            "login_email",
-            "login_password",
-            "signup_email",
-            "signup_password",
-            "signup_confirm_password",
-        ]
+            # Czyszczenie danych użytkownika i wyników analizy
+            session_keys_to_clear = [
+                "bodylab_user_id",
+                "bodylab_user_email",
+                "bmi_result",
+                "supabase_client",
+                "login_email",
+                "login_password",
+                "signup_email",
+                "signup_password",
+                "signup_confirm_password",
+            ]
 
-        for key in session_keys_to_clear:
-            st.session_state.pop(key, None)
+            for key in session_keys_to_clear:
+                st.session_state.pop(key, None)
 
-        # Powrót do ekranu logowania
-        st.rerun()
+            # Powrót do ekranu logowania
+            st.rerun()
 
 
 
