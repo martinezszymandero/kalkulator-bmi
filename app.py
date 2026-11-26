@@ -442,7 +442,39 @@ div.stFormSubmitButton > button[kind="primary"]:hover {
     color: var(--bl-text);
 }
 [data-testid="stMetricDelta"] {
-    color: var(--bl-cyan);
+    color: #E0F2FE !important;
+    background: #BAE6FD !important;
+    border-radius: 999px;
+    padding: 3px 9px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+[data-testid="stMetricDelta"] svg,
+[data-testid="stMetricDelta"] svg * {
+    color: #FFFFFF !important;
+    fill: #FFFFFF !important;
+    stroke: #FFFFFF !important;
+}
+[data-testid="stMetricDelta"] [data-testid="stMarkdownContainer"],
+[data-testid="stMetricDelta"] p,
+[data-testid="stMetricDelta"] span {
+    color: #075985 !important;
+}
+[data-testid="stMetricLabel"] [data-testid="stTooltipIcon"],
+[data-testid="stMetricLabel"] button,
+[data-testid="stMetricLabel"] svg,
+[data-testid="stTooltipIcon"],
+[data-testid="stTooltipIcon"] svg {
+    color: #7DD3FC !important;
+    fill: #7DD3FC !important;
+    stroke: #7DD3FC !important;
+    opacity: 1 !important;
+}
+[data-testid="stMetricLabel"] [data-testid="stTooltipIcon"] {
+    background: rgba(125, 211, 252, 0.12);
+    border: 1px solid #7DD3FC;
+    border-radius: 50%;
 }
 [data-testid="stExpander"] {
     background: var(--bl-surface);
