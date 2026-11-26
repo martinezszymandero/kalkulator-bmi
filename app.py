@@ -111,6 +111,22 @@ html, body, [class*="css"] {
     opacity: 1 !important;
     visibility: visible !important;
 }
+/* Make the sidebar expand/collapse control clearly visible on narrow screens. */
+[data-testid="stSidebarCollapsedControl"] button,
+[data-testid="stSidebarCollapsedControl"] button *,
+[data-testid="stHeader"] button[kind="header"],
+[data-testid="stHeader"] button[kind="header"] * {
+    color: #FFFFFF !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+[data-testid="stSidebarCollapsedControl"] button svg,
+[data-testid="stHeader"] button[kind="header"] svg {
+    fill: #FFFFFF !important;
+    stroke: #FFFFFF !important;
+    color: #FFFFFF !important;
+}
+
 [data-testid="stHeader"] {
     background: rgba(8, 19, 33, .92);
 }
