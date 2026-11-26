@@ -3,6 +3,7 @@ import math
 import streamlit as st
 import pandas as pd
 import io
+import html as html_lib
 from datetime import datetime
 from supabase import create_client
 from smart_body_analysis_v2 import analyze_body
@@ -1335,7 +1336,7 @@ if dashboard_history:
                     #60A5FA 0%,#60A5FA 14%,
                     #10B981 14%,#10B981 40%,
                     #F59E0B 40%,#F59E0B 60%,
-                    #EF4444 60%,#EF4444 100%);">
+                    #7F1D3A 60%,#7F1D3A 100%);">
           <div style="position:absolute;left:calc({bmi_marker_position:.2f}% - 2px);
                       top:-6px;width:4px;height:25px;background:#FFFFFF;
                       border:1px solid #081321;border-radius:4px;
@@ -1931,9 +1932,17 @@ if result:
 
     body_composition = smart.get("body_composition_intelligence", {})
 
+    def body_composition_caption(value):
+        safe_text = html_lib.escape(str(value))
+        render_html(
+            f'<p style="color:#B0C4D8 !important;font-size:13px;'
+            f'line-height:1.55;margin:0.25rem 0 0.65rem 0;">{safe_text}</p>'
+        )
+
+
     st.divider()
     st.markdown("### Body Composition Intelligence")
-    st.caption(
+    body_composition_caption(
         "Łączna, regułowa interpretacja BMI, WHtR i WHR. "
         "Moduł pokazuje zgodność lub rozbieżności między wskaźnikami; "
         "nie określa bezpośrednio procentowej zawartości tkanki tłuszczowej."
@@ -1959,7 +1968,7 @@ if result:
             "overall_summary",
             "Brak podsumowania dla dostępnych danych."
         ))
-        st.caption(
+        body_composition_caption(
             "Spójność wyników: "
             + consistency_labels.get(
                 body_composition.get("consistency"),
@@ -1985,7 +1994,7 @@ if result:
                 else:
                     decimals = 2 if metric_key == "bmi" else 3
                     st.metric(metric_title, f"{metric_value:.{decimals}f}")
-                st.caption(metric_data.get("label", "Brak danych"))
+                body_composition_caption(metric_data.get("label", "Brak danych"))
                 st.write(metric_data.get(
                     "interpretation",
                     "Brak interpretacji dla tego wskaźnika."
@@ -1999,7 +2008,7 @@ if result:
             for signal in signals:
                 st.markdown(f"- {signal}")
         else:
-            st.caption("Brak dodatkowych sygnałów dla dostępnych danych.")
+            body_composition_caption("Brak dodatkowych sygnałów dla dostępnych danych.")
 
         composition_limitations = body_composition.get("limitations", [])
         if composition_limitations:
@@ -2009,7 +2018,7 @@ if result:
 
         disclaimer = body_composition.get("disclaimer")
         if disclaimer:
-            st.caption(disclaimer)
+            body_composition_caption(disclaimer)
 
     # --------------------------------------------------------
     # WEIGHT INTELLIGENCE – INTERPRETACJA ZMIAN MASY
