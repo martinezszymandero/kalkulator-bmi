@@ -451,16 +451,16 @@ div.stFormSubmitButton > button[kind="primary"]:hover {
     gap: 4px;
 }
 [data-testid="stMetricDelta"] svg {
-    color: #FFFFFF !important;
+    color: #000000 !important;
     fill: none !important;
-    stroke: #FFFFFF !important;
+    stroke: #000000 !important;
 }
 [data-testid="stMetricDelta"] svg path,
 [data-testid="stMetricDelta"] svg line,
 [data-testid="stMetricDelta"] svg polyline,
 [data-testid="stMetricDelta"] svg polygon {
     fill: none !important;
-    stroke: #FFFFFF !important;
+    stroke: #000000 !important;
 }
 [data-testid="stMetricDelta"] p,
 [data-testid="stMetricDelta"] span {
