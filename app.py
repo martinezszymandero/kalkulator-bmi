@@ -550,6 +550,77 @@ div.stFormSubmitButton > button[kind="primary"]:hover {
     .insight-card { padding: 17px; }
     [data-testid="stForm"] { padding: 17px; }
 }
+
+/* ==========================================================
+   BODYLAB TYPOGRAPHY SYSTEM | SINGLE FONT FAMILY: INTER
+   One family throughout; hierarchy remains controlled by
+   existing sizes and weights of individual components.
+   ========================================================== */
+:root {
+    --bl-font-family: 'Inter', -apple-system, BlinkMacSystemFont,
+                      'Segoe UI', sans-serif;
+    --bl-font-regular: 400;
+    --bl-font-medium: 500;
+    --bl-font-semibold: 600;
+    --bl-font-bold: 700;
+    --bl-font-extrabold: 800;
+    --bl-font-black: 900;
+}
+
+/* Apply Inter consistently without flattening the hierarchy. */
+html,
+body,
+.stApp,
+.stApp *,
+[data-testid="stAppViewContainer"],
+[data-testid="stAppViewContainer"] *,
+[data-testid="stSidebar"],
+[data-testid="stSidebar"] *,
+[data-testid="stMarkdownContainer"],
+[data-testid="stMarkdownContainer"] *,
+[data-testid="stWidgetLabel"],
+[data-testid="stWidgetLabel"] *,
+[data-testid="stMetric"],
+[data-testid="stMetric"] *,
+[data-testid="stForm"],
+[data-testid="stForm"] *,
+[data-baseweb],
+[data-baseweb] *,
+button,
+input,
+textarea,
+select {
+    font-family: var(--bl-font-family) !important;
+    font-synthesis: none;
+}
+
+/* Keep semantic text weights predictable across Streamlit widgets. */
+body,
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stMarkdownContainer"] li,
+[data-testid="stCaptionContainer"],
+.stCaption,
+small,
+input,
+textarea,
+select {
+    font-weight: var(--bl-font-regular);
+}
+
+button,
+.stButton button,
+.stFormSubmitButton button,
+.stDownloadButton button,
+.stLinkButton a {
+    font-weight: var(--bl-font-semibold) !important;
+}
+
+/* Native headings keep their individual size; only standardize weight. */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--bl-font-family) !important;
+    font-synthesis: none;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
