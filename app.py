@@ -4,9 +4,33 @@ import streamlit as st
 import pandas as pd
 import io
 import html as html_lib
-from datetime import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from supabase import create_client
 from smart_body_analysis_v2 import analyze_body
+
+
+# ============================================================
+# STREFA CZASOWA – PREZENTACJA DAT W HISTORII
+# Dane w Supabase pozostają zapisane w UTC.
+# ============================================================
+
+WARSAW_TZ = ZoneInfo("Europe/Warsaw")
+
+
+def format_local_datetime(value, date_format):
+    """Formatuje znacznik czasu w lokalnej strefie Europe/Warsaw."""
+    if not value:
+        return ""
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(WARSAW_TZ).strftime(date_format)
+    except (TypeError, ValueError, AttributeError):
+        return str(value)
+
+
 
 
 # ============================================================
@@ -1324,12 +1348,10 @@ def measurement_to_display(row):
             return None
         return number
 
-    created = row.get("created_at", "")
-    if created:
-        try:
-            created = datetime.fromisoformat(created.replace("Z", "+00:00")).astimezone().strftime("%Y-%m-%d %H:%M:%S %z")
-        except (TypeError, ValueError, AttributeError):
-            created = str(created)
+    created = format_local_datetime(
+        row.get("created_at", ""),
+        "%Y-%m-%d %H:%M:%S %z"
+    )
 
     return {
         "Data zapisu": created,
@@ -1490,13 +1512,10 @@ if dashboard_history:
             )
 
     created_at = latest_measurement.get("created_at", "")
-    if created_at:
-        try:
-            created_label = datetime.fromisoformat(created_at.replace("Z", "+00:00")).astimezone().strftime("%d.%m.%Y, %H:%M")
-        except Exception:
-            created_label = created_at
-    else:
-        created_label = "brak daty"
+    created_label = (
+        format_local_datetime(created_at, "%d.%m.%Y, %H:%M")
+        if created_at else "brak daty"
+    )
     st.caption(f"Ostatni zapisany pomiar: {created_label} · Łącznie zapisanych pomiarów: {len(dashboard_history)}")
 
     if len(dashboard_history) >= 2:
@@ -2643,7 +2662,7 @@ if db_history:
 
     with st.expander("Usuń zapisany pomiar"):
         delete_options = {
-            f"{row.get('created_at', '')[:19]} | {row.get('weight')} kg | BMI {row.get('bmi')}": row["id"]
+            f"{format_local_datetime(row.get('created_at', ''), '%Y-%m-%d %H:%M:%S')} | {row.get('weight')} kg | BMI {row.get('bmi')}": row["id"]
             for row in reversed(db_history)
         }
         selected_label = st.selectbox("Wybierz pomiar do usunięcia", list(delete_options.keys()))
