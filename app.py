@@ -641,6 +641,27 @@ span[class*="material-icons"] {
     -webkit-font-feature-settings: "liga" !important;
 }
 
+/* Streamlit renders Material Symbols through this test-id in several
+   widget versions. Restore the icon font specifically for these nodes. */
+[data-testid="stIconMaterial"],
+[data-testid="stExpander"] [data-testid="stIconMaterial"],
+[data-testid="stExpander"] summary [data-testid="stIconMaterial"],
+[data-testid="stExpander"] button [data-testid="stIconMaterial"] {
+    font-family: "Material Symbols Rounded" !important;
+    font-weight: 400 !important;
+    font-style: normal !important;
+    font-size: 1.25rem !important;
+    line-height: 1 !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    white-space: nowrap !important;
+    word-wrap: normal !important;
+    direction: ltr !important;
+    font-feature-settings: "liga" 1 !important;
+    -webkit-font-feature-settings: "liga" !important;
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24 !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
