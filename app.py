@@ -35,421 +35,460 @@ st.set_page_config(
 
 st.markdown("""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 /* ==========================================================
-   BODYLAB | LEGACY CSS BASE LAYER (DESIGN SYSTEM 2.1)
+   BODYLAB TECH ANALYTICS | VISUAL UPDATE – STAGE 1
+   CSS only: no changes to calculations, data, or application flow
    ========================================================== */
 
 :root {
-    --navy: #142D4E;
-    --navy-deep: #10243F;
-    --teal: #0D9488;
-    --teal-light: #E6F5F3;
-    --background: #F4F7FB;
-    --surface: #FFFFFF;
-    --border: #E3EAF2;
-    --text: #263B53;
-    --muted: #718198;
-    --soft-shadow: 0 8px 24px rgba(20, 45, 78, 0.055);
+    --bl-bg: #081321;
+    --bl-sidebar: #0B1728;
+    --bl-surface: #111F33;
+    --bl-surface-elevated: #172941;
+    --bl-cyan: #22D3EE;
+    --bl-blue: #3B82F6;
+    --bl-text: #F1F5F9;
+    --bl-muted: #94A3B8;
+    --bl-border: #263B54;
+    --bl-shadow: 0 12px 32px rgba(0, 0, 0, .22);
 }
 
-/* GLOBAL */
-
+/* Global foundation */
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+}
 .stApp {
-    background: var(--background);
-    color: var(--text);
+    background: var(--bl-bg);
+    color: var(--bl-text);
 }
-
+[data-testid="stAppViewContainer"] {
+    background: var(--bl-bg);
+}
 .block-container {
-    max-width: 1180px;
-    padding-top: 2.2rem;
-    padding-bottom: 3.5rem;
+    max-width: 1440px;
+    padding: 2rem 2.5rem 4rem;
 }
-
-#MainMenu,
-footer {
+[data-testid="stHeader"] {
+    background: rgba(8, 19, 33, .92);
+}
+#MainMenu, footer {
     visibility: hidden;
 }
-
-header[data-testid="stHeader"] {
-    background: transparent;
+h1, h2, h3, h4, h5, h6,
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stMarkdownContainer"] li {
+    color: var(--bl-text);
+}
+[data-testid="stCaptionContainer"],
+.stCaption,
+small {
+    color: var(--bl-muted) !important;
+}
+a {
+    color: var(--bl-cyan);
+}
+a:hover {
+    color: #67E8F9;
 }
 
-/* BRANDING */
-
-.brand {
-    font-size: 36px;
-    font-weight: 850;
-    letter-spacing: 2px;
-    color: var(--navy);
-    line-height: 1.2;
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background: var(--bl-sidebar);
+    border-right: 1px solid var(--bl-border);
+}
+[data-testid="stSidebar"] > div:first-child {
+    background: var(--bl-sidebar);
+    padding: 1.4rem 1rem;
+}
+[data-testid="stSidebar"] * {
+    color: var(--bl-text);
+}
+[data-testid="stSidebar"] hr {
+    border-color: var(--bl-border);
+}
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+[data-testid="stSidebar"] .stCaption {
+    color: var(--bl-muted) !important;
+}
+[data-testid="stSidebar"] a {
+    color: var(--bl-text) !important;
+    text-decoration: none !important;
+}
+[data-testid="stSidebar"] a:hover {
+    color: var(--bl-cyan) !important;
 }
 
-.brand-accent {
-    color: var(--teal);
+/* Brand and navigation */
+.brand, .bl-sidebar-brand {
+    color: var(--bl-text);
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 1.8px;
 }
-
-.subtitle {
-    color: var(--muted);
-    font-size: 11px;
-    letter-spacing: 1.7px;
-    margin-top: 7px;
-    margin-bottom: 30px;
+.brand-accent, .bl-sidebar-brand span {
+    color: var(--bl-cyan);
 }
-
-/* HEADINGS */
-
-.section-title {
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--navy);
-    margin-top: 22px;
-    margin-bottom: 19px;
-    letter-spacing: -0.3px;
+.subtitle, .bl-sidebar-caption {
+    color: var(--bl-muted);
+    font-size: 10px;
+    letter-spacing: 1.6px;
 }
-
-/* METRIC CARDS */
-
-.metric-card,
-.result-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 26px;
-    min-height: 175px;
-    box-shadow: var(--soft-shadow);
-    box-sizing: border-box;
-    height: 100%;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
-}
-
-.metric-card:hover,
-.result-card:hover {
-    box-shadow: 0 12px 28px rgba(20, 45, 78, 0.09);
-    transform: translateY(-2px);
-}
-
-.metric-label {
-    color: var(--muted);
+.bl-nav-title {
+    color: #647F9E;
     font-size: 10px;
     font-weight: 800;
-    letter-spacing: 1.2px;
+    letter-spacing: 1.7px;
+}
+.bl-nav a {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px 12px;
+    margin: 4px 0;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    background: transparent;
+    transition: background .18s ease, color .18s ease;
+}
+.bl-nav a:hover {
+    background: rgba(34, 211, 238, .09);
+    color: var(--bl-cyan) !important;
+}
+.bl-nav .nav-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--bl-cyan);
+    display: inline-block;
+}
+.bl-sidebar-foot {
+    color: #647F9E;
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+/* Section hierarchy */
+.section-title {
+    color: var(--bl-text);
+    font-size: 22px;
+    font-weight: 800;
+    margin: 22px 0 18px;
+    letter-spacing: -.4px;
+}
+hr, [data-testid="stDivider"] {
+    border-color: var(--bl-border) !important;
+}
+
+/* Hero */
+.bl-hero {
+    background: linear-gradient(120deg, #10243B 0%, #12334C 72%, #124B5A 130%);
+    border: 1px solid rgba(34, 211, 238, .16);
+    border-radius: 18px;
+    padding: 30px 34px;
+    margin: 2px 0 26px;
+    box-shadow: var(--bl-shadow);
+    position: relative;
+    overflow: hidden;
+}
+.bl-hero:after {
+    content: '';
+    position: absolute;
+    width: 250px;
+    height: 250px;
+    border: 1px solid rgba(34, 211, 238, .14);
+    border-radius: 50%;
+    right: -45px;
+    top: -110px;
+    box-shadow: 0 0 0 28px rgba(34, 211, 238, .025),
+                0 0 0 58px rgba(34, 211, 238, .018);
+}
+.bl-hero-kicker {
+    color: var(--bl-cyan);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+.bl-hero-title {
+    color: #FFFFFF;
+    font-size: clamp(25px, 3vw, 36px);
+    font-weight: 850;
+    letter-spacing: -.8px;
+    line-height: 1.15;
+}
+.bl-hero-copy {
+    color: #B7C9D9;
+    font-size: 13px;
+    line-height: 1.7;
+    margin-top: 10px;
+    max-width: 650px;
+}
+.bl-hero-tag {
+    display: inline-block;
+    color: #CFFAFE;
+    background: rgba(34, 211, 238, .10);
+    border: 1px solid rgba(34, 211, 238, .25);
+    padding: 6px 10px;
+    border-radius: 30px;
+    font-size: 10px;
+    letter-spacing: .5px;
+    margin-top: 16px;
+}
+
+/* Metric and result cards */
+.metric-card, .result-card, .tip-card {
+    background: var(--bl-surface);
+    border: 1px solid var(--bl-border);
+    border-radius: 16px;
+    padding: 23px;
+    min-height: 150px;
+    color: var(--bl-text);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .14);
+    box-sizing: border-box;
+    height: 100%;
+    transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+.metric-card:hover, .result-card:hover, .tip-card:hover {
+    border-color: rgba(34, 211, 238, .38);
+    box-shadow: var(--bl-shadow);
+    transform: translateY(-1px);
+}
+.metric-label {
+    color: var(--bl-muted);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.25px;
     text-transform: uppercase;
 }
-
 .metric-value {
-    color: var(--navy);
-    font-size: 32px;
+    color: var(--bl-text);
+    font-size: 30px;
     font-weight: 850;
-    margin-top: 17px;
-    letter-spacing: -0.8px;
+    margin-top: 14px;
+    letter-spacing: -.7px;
 }
-
-.metric-description {
-    color: var(--muted);
+.metric-description, .result-description {
+    color: var(--bl-muted);
     font-size: 12px;
     margin-top: 10px;
-    line-height: 1.65;
+    line-height: 1.7;
 }
 
-/* BMI RESULT */
-
+/* BMI result and scale */
 .bmi-number {
-    color: var(--navy);
-    font-size: 66px;
+    color: var(--bl-cyan);
+    font-size: 64px;
     font-weight: 900;
     line-height: 1.15;
     margin-top: 12px;
     letter-spacing: -2px;
 }
-
 .category-label {
-    font-size: 19px;
+    font-size: 18px;
     font-weight: 800;
     margin-top: 12px;
 }
-
-.result-description {
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 1.7;
-    margin-top: 13px;
-}
-
-/* BMI SCALE */
-
 .bmi-scale {
     width: 100%;
     height: 15px;
     border-radius: 20px;
     position: relative;
-    background: linear-gradient(
-        to right,
-        #60A5FA 0%,
-        #60A5FA 14%,
-        #34D399 14%,
-        #34D399 40%,
-        #FBBF24 40%,
-        #FBBF24 60%,
-        #FB923C 60%,
-        #FB923C 80%,
-        #EF4444 80%,
-        #EF4444 100%
-    );
+    background: linear-gradient(to right,
+        #3B82F6 0%, #3B82F6 14%,
+        #10B981 14%, #10B981 40%,
+        #F59E0B 40%, #F59E0B 60%,
+        #F97316 60%, #F97316 80%,
+        #EF4444 80%, #EF4444 100%);
 }
-
 .bmi-marker {
     position: absolute;
     top: -8px;
     width: 5px;
     height: 31px;
-    background: var(--navy);
-    border: 2px solid white;
+    background: var(--bl-cyan);
+    border: 2px solid var(--bl-bg);
     border-radius: 5px;
     transform: translateX(-50%);
-    box-shadow: 0 2px 7px rgba(0,0,0,0.22);
+    box-shadow: 0 0 12px rgba(34, 211, 238, .45);
 }
-
 .scale-labels {
     position: relative;
     height: 25px;
     margin-top: 12px;
 }
-
 .scale-label {
     position: absolute;
     transform: translateX(-50%);
-    color: var(--muted);
+    color: var(--bl-muted);
     font-size: 11px;
 }
+.scale-label:first-child { transform: none; }
+.scale-label:last-child { transform: translateX(-100%); }
 
-.scale-label:first-child {
-    transform: none;
-}
-
-.scale-label:last-child {
-    transform: translateX(-100%);
-}
-
-/* ANALYSIS CARDS */
-
+/* Smart analysis and tips */
 .insight-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left: 5px solid var(--teal);
+    background: #10283A;
+    border: 1px solid #21445A;
+    border-left: 4px solid var(--bl-cyan);
     border-radius: 14px;
-    padding: 23px;
+    padding: 20px 22px;
     margin-top: 14px;
-    color: var(--text);
+    color: #D7E7F2;
     line-height: 1.75;
-    box-shadow: 0 4px 15px rgba(20, 45, 78, 0.035);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .12);
 }
-
-.insight-heading {
-    color: var(--navy);
+.insight-heading, .tip-heading {
+    color: var(--bl-cyan);
     font-weight: 800;
-    font-size: 16px;
-    margin-bottom: 11px;
+    font-size: 15px;
+    margin-bottom: 10px;
 }
-
 .tip-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 21px;
-    height: 100%;
-    color: var(--text);
     font-size: 13px;
     line-height: 1.7;
-    box-shadow: 0 4px 15px rgba(20, 45, 78, 0.035);
 }
 
-.tip-heading {
-    color: var(--navy);
-    font-weight: 800;
-    font-size: 14px;
-    margin-bottom: 9px;
-}
-
-/* EDUCATIONAL INFORMATION */
-
+/* Disclaimer and footer */
 .disclaimer {
-    background: #EAF0F6;
-    border: 1px solid var(--border);
+    background: var(--bl-surface-elevated);
+    border: 1px solid var(--bl-border);
     border-radius: 14px;
     padding: 21px;
-    color: #607086;
+    color: var(--bl-muted);
     font-size: 12px;
     line-height: 1.8;
     margin-top: 24px;
 }
-
-/* FOOTER */
-
 .footer {
     text-align: center;
-    color: #94A3B8;
+    color: var(--bl-muted);
     font-size: 11px;
     padding: 24px;
 }
 
-/* BUTTONS */
-
-div.stButton > button,
-div.stFormSubmitButton > button {
-    background: var(--navy);
-    color: white;
-    border: 1px solid var(--navy);
-    border-radius: 11px;
-    font-weight: 750;
-    min-height: 47px;
-    transition: all 0.2s ease;
+/* Streamlit forms and controls */
+[data-testid="stForm"] {
+    background: var(--bl-surface);
+    border: 1px solid var(--bl-border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .14);
 }
-
-div.stButton > button:hover,
-div.stFormSubmitButton > button:hover {
-    background: var(--teal);
-    border-color: var(--teal);
-    color: white;
-}
-
-/* INPUTS */
-
-[data-testid="stNumberInput"] input,
 [data-testid="stTextInput"] input,
-[data-testid="stSelectbox"] div[data-baseweb="select"] {
+[data-testid="stNumberInput"] input,
+[data-testid="stTextArea"] textarea,
+[data-testid="stSelectbox"] div[data-baseweb="select"],
+[data-testid="stMultiSelect"] div[data-baseweb="select"] {
+    background: var(--bl-surface-elevated);
+    color: var(--bl-text);
+    border-color: var(--bl-border);
     border-radius: 10px;
 }
-
+[data-testid="stTextInput"] input:focus,
 [data-testid="stNumberInput"] input:focus,
-[data-testid="stTextInput"] input:focus {
-    border-color: var(--teal);
-    box-shadow: 0 0 0 1px var(--teal);
+[data-testid="stTextArea"] textarea:focus {
+    border-color: var(--bl-cyan);
+    box-shadow: 0 0 0 1px var(--bl-cyan);
+}
+[data-testid="stWidgetLabel"] label,
+[data-testid="stWidgetLabel"] p {
+    color: var(--bl-text) !important;
+}
+div.stButton > button,
+div.stFormSubmitButton > button,
+div.stDownloadButton > button,
+.stLinkButton a {
+    background: var(--bl-surface-elevated);
+    color: var(--bl-text);
+    border: 1px solid var(--bl-border);
+    border-radius: 10px;
+    font-weight: 700;
+    min-height: 43px;
+    transition: all .18s ease;
+}
+div.stButton > button[kind="primary"],
+div.stFormSubmitButton > button[kind="primary"] {
+    background: var(--bl-cyan);
+    border-color: var(--bl-cyan);
+    color: #06202B;
+}
+div.stButton > button:hover,
+div.stFormSubmitButton > button:hover,
+div.stDownloadButton > button:hover,
+.stLinkButton a:hover {
+    border-color: var(--bl-cyan);
+    color: var(--bl-cyan);
+}
+div.stButton > button[kind="primary"]:hover,
+div.stFormSubmitButton > button[kind="primary"]:hover {
+    background: #67E8F9;
+    color: #06202B;
 }
 
-/* DIVIDERS */
-
-hr {
-    border-color: var(--border);
-    margin-top: 28px;
-    margin-bottom: 28px;
+/* Metrics, tables, charts and expanders */
+[data-testid="stMetric"] {
+    background: var(--bl-surface);
+    border: 1px solid var(--bl-border);
+    border-radius: 14px;
+    padding: 15px 17px;
 }
-
-/* EXPANDERS */
-
+[data-testid="stMetricLabel"] {
+    color: var(--bl-muted);
+}
+[data-testid="stMetricValue"] {
+    color: var(--bl-text);
+}
+[data-testid="stMetricDelta"] {
+    color: var(--bl-cyan);
+}
 [data-testid="stExpander"] {
-    border: 1px solid var(--border);
+    background: var(--bl-surface);
+    border: 1px solid var(--bl-border);
     border-radius: 13px;
-    background: var(--surface);
+}
+[data-testid="stDataFrame"], [data-testid="stTable"] {
+    border: 1px solid var(--bl-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+[data-testid="stAlert"] {
+    border-radius: 12px;
+}
+[data-testid="stTabs"] [data-baseweb="tab-list"] {
+    gap: 8px;
+}
+[data-testid="stTabs"] button[role="tab"] {
+    color: var(--bl-muted);
+}
+[data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
+    color: var(--bl-cyan);
+    border-bottom-color: var(--bl-cyan);
+}
+[id^="bodylab-"] {
+    scroll-margin-top: 24px;
 }
 
-/* RESPONSIVE */
-
-@media (max-width: 768px) {
-
-    .block-container {
-        padding-top: 1.2rem;
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-
-    .brand {
-        font-size: 29px;
-    }
-
-    .section-title {
-        font-size: 19px;
-    }
-
-    .bmi-number {
-        font-size: 49px;
-    }
-
-    .metric-value {
-        font-size: 25px;
-    }
-
-    .result-card,
-    .metric-card {
-        padding: 19px;
-    }
-
-    .insight-card,
-    .tip-card {
-        padding: 17px;
-    }
-}
-
-
-/* ==========================================================
-   BODYLAB | LEGACY DASHBOARD OVERRIDE LAYER (LAYOUT 3.0)
-   ========================================================== */
-:root {
-    --navy: #10243F;
-    --navy-deep: #0B1B30;
-    --teal: #13A89E;
-    --teal-light: #E5F7F5;
-    --background: #F3F6FA;
-    --surface: #FFFFFF;
-    --border: #E5EAF1;
-    --text: #24364B;
-    --muted: #748399;
-    --soft-shadow: 0 10px 30px rgba(16,36,63,.055);
-}
-
-.stApp { background: var(--background); }
-.block-container { max-width: 1440px; padding: 2rem 2.6rem 4rem; }
-[data-testid="stSidebar"] { background: #10243F; border-right: 0; }
-[data-testid="stSidebar"] > div:first-child { padding: 1.4rem 1rem; }
-[data-testid="stSidebar"] * { color: #EAF1F8; }
-[data-testid="stSidebar"] hr { border-color: rgba(255,255,255,.14); }
-[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color: #AFC0D3; }
-[data-testid="stSidebar"] a { color: #EAF1F8 !important; text-decoration: none !important; }
-[data-testid="stSidebar"] a:hover { color: #5DE0D4 !important; }
-[data-testid="stSidebar"] .stButton button { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.13); color: white; }
-[data-testid="stHeader"] { background: rgba(243,246,250,.86); }
-
-/* Sidebar brand and navigation */
-.bl-sidebar-brand { font-size: 25px; font-weight: 900; letter-spacing: 1.8px; color: white; padding: 8px 8px 2px; }
-.bl-sidebar-brand span { color: #35C7BB; }
-.bl-sidebar-caption { color: #91A7BF; font-size: 9px; letter-spacing: 1.6px; padding: 0 9px 22px; }
-.bl-nav-title { color: #7188A3; font-size: 10px; font-weight: 800; letter-spacing: 1.7px; padding: 10px 10px 8px; }
-.bl-nav a { display: flex; align-items: center; gap: 11px; padding: 11px 12px; margin: 4px 0; border-radius: 10px; font-size: 13px; font-weight: 650; background: transparent; transition: .15s ease; }
-.bl-nav a:hover { background: rgba(255,255,255,.09); color: #5DE0D4 !important; }
-.bl-nav .nav-dot { width: 7px; height: 7px; border-radius: 50%; background: #35C7BB; display: inline-block; }
-.bl-sidebar-foot { color: #7188A3; font-size: 10px; line-height: 1.6; padding: 24px 10px 8px; }
-
-/* Main hero */
-.bl-hero { background: linear-gradient(120deg,#10243F 0%,#183B5C 70%,#116E70 130%); border-radius: 22px; padding: 30px 34px; margin: 2px 0 26px; box-shadow: 0 16px 36px rgba(16,36,63,.13); position: relative; overflow: hidden; }
-.bl-hero:after { content: ''; position: absolute; width: 250px; height: 250px; border: 1px solid rgba(255,255,255,.10); border-radius: 50%; right: -45px; top: -110px; box-shadow: 0 0 0 28px rgba(255,255,255,.025),0 0 0 58px rgba(255,255,255,.02); }
-.bl-hero-kicker { color: #7DE2D8; font-size: 10px; font-weight: 800; letter-spacing: 2px; margin-bottom: 10px; }
-.bl-hero-title { color: #FFFFFF; font-size: clamp(25px,3vw,36px); font-weight: 850; letter-spacing: -.8px; line-height: 1.15; }
-.bl-hero-copy { color: #C4D3E2; font-size: 13px; line-height: 1.7; margin-top: 10px; max-width: 650px; }
-.bl-hero-tag { display: inline-block; color: #D6F7F3; background: rgba(31,190,176,.16); border: 1px solid rgba(125,226,216,.25); padding: 6px 10px; border-radius: 30px; font-size: 10px; letter-spacing: .5px; margin-top: 16px; }
-
-/* Section hierarchy and surfaces */
-.section-title { font-size: 22px; font-weight: 820; color: #10243F; margin: 22px 0 18px; letter-spacing: -.45px; }
-.metric-card,.result-card { border: 1px solid #E5EAF1; border-radius: 17px; background: white; box-shadow: 0 7px 22px rgba(16,36,63,.045); padding: 23px; min-height: 160px; }
-.metric-card:hover,.result-card:hover { box-shadow: 0 12px 28px rgba(16,36,63,.08); transform: translateY(-1px); }
-.metric-value { color: #10243F; font-size: 29px; font-weight: 850; letter-spacing: -.8px; }
-.bmi-number { color: #10243F; font-size: 58px; font-weight: 900; }
-.metric-label { color: #7A899C; font-size: 10px; letter-spacing: 1.35px; }
-.insight-card { background: #EAF6F5; border: 1px solid #D4ECE9; border-left: 4px solid #13A89E; border-radius: 14px; padding: 20px 22px; color: #355367; line-height: 1.7; }
-.tip-card { background: white; border: 1px solid #E5EAF1; border-radius: 15px; box-shadow: 0 6px 18px rgba(16,36,63,.04); padding: 20px; }
-.stButton button, .stDownloadButton button, .stLinkButton a { border-radius: 10px; font-weight: 750; min-height: 42px; }
-.stButton button[kind="primary"], .stFormSubmitButton button[kind="primary"] { background: #0D9488; border-color: #0D9488; }
-.stTextInput input,.stNumberInput input,.stSelectbox div[data-baseweb="select"] { border-radius: 9px; }
-[data-testid="stForm"] { background: white; border: 1px solid #E5EAF1; border-radius: 18px; padding: 24px; box-shadow: 0 8px 24px rgba(16,36,63,.04); }
-[data-testid="stExpander"] { border: 1px solid #E5EAF1; border-radius: 12px; background: white; }
-[data-testid="stMetric"] { background: white; border: 1px solid #E5EAF1; border-radius: 14px; padding: 15px 17px; }
-[data-testid="stDivider"] { border-color: #E5EAF1; }
-[id^="bodylab-"] { scroll-margin-top: 24px; }
-
+/* Responsive */
 @media (max-width: 900px) {
-  .block-container { padding: 1.2rem 1rem 3rem; }
-  .bl-hero { padding: 24px 22px; }
+    .block-container {
+        padding: 1.2rem 1rem 3rem;
+    }
+    .bl-hero {
+        padding: 24px 22px;
+    }
 }
-
+@media (max-width: 768px) {
+    .brand { font-size: 29px; }
+    .section-title { font-size: 19px; }
+    .bmi-number { font-size: 49px; }
+    .metric-value { font-size: 25px; }
+    .result-card, .metric-card, .tip-card { padding: 18px; }
+    .insight-card { padding: 17px; }
+    [data-testid="stForm"] { padding: 17px; }
+}
 </style>
 """, unsafe_allow_html=True)
 
