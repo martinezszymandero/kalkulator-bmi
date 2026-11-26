@@ -1341,10 +1341,12 @@ if dashboard_history:
                       border:1px solid #081321;border-radius:4px;
                       box-shadow:0 0 0 2px rgba(255,255,255,.18);"></div>
         </div>
-        <div style="display:flex;justify-content:space-between;gap:8px;margin-top:10px;
-                    color:#94A3B8;font-size:11px;">
-          <span>Niedowaga</span><span>Masa prawidłowa</span>
-          <span>Nadwaga</span><span>Otyłość</span>
+        <div style="display:grid;grid-template-columns:14fr 26fr 20fr 40fr;
+                    gap:0;margin-top:10px;color:#94A3B8;font-size:11px;">
+          <span style="text-align:center;">Niedowaga</span>
+          <span style="text-align:center;">Masa prawidłowa</span>
+          <span style="text-align:center;">Nadwaga</span>
+          <span style="text-align:center;">Otyłość</span>
         </div>
         <div style="color:#64748B;font-size:11px;margin-top:8px;">
           Zakres referencyjny BMI dla dorosłych: 18,5–24,9
