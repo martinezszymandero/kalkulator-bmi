@@ -1286,10 +1286,77 @@ if dashboard_history:
     latest_measurement = dashboard_history[-1]
     previous_measurement = dashboard_history[-2] if len(dashboard_history) >= 2 else None
 
-    metric_cols = st.columns(4)
+    # Wykorzystujemy zapisany wynik BMI i istniejącą klasyfikację.
+    bmi_value = float(latest_measurement["bmi"])
+    bmi_category = get_bmi_category(bmi_value)
+    bmi_color = bmi_category["color"]
+    bmi_category_name = bmi_category["name"]
+    bmi_description = bmi_category["description"]
+
+    # Pozycja markera na skali 15–40; ograniczona do jej widocznego zakresu.
+    bmi_scale_min = 15.0
+    bmi_scale_max = 40.0
+    bmi_marker_position = max(
+        0.0,
+        min(100.0, ((bmi_value - bmi_scale_min) / (bmi_scale_max - bmi_scale_min)) * 100.0)
+    )
+
+    render_html(f"""
+    <section class="bl-bmi-hero-card" style="
+        background:linear-gradient(120deg,#111F33 0%,#132B43 100%);
+        border:1px solid #263B54;border-radius:18px;padding:26px 28px;
+        margin:8px 0 18px 0;box-shadow:0 12px 30px rgba(0,0,0,.12);">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div style="color:#94A3B8;font-size:12px;font-weight:700;letter-spacing:1.5px;">
+          BODY COMPOSITION ANALYTICS
+        </div>
+        <div style="color:#22D3EE;border:1px solid #23617A;background:rgba(34,211,238,.08);
+                    border-radius:999px;padding:6px 11px;font-size:11px;font-weight:700;">
+          GŁÓWNY WSKAŹNIK
+        </div>
+      </div>
+      <div style="margin-top:20px;color:#94A3B8;font-size:12px;font-weight:700;letter-spacing:1.2px;">
+        TWÓJ WSKAŹNIK BMI
+      </div>
+      <div style="display:flex;align-items:baseline;gap:15px;flex-wrap:wrap;margin-top:2px;">
+        <div style="font-size:clamp(48px,7vw,68px);line-height:1.08;font-weight:800;
+                    letter-spacing:-2px;color:#22D3EE;">{bmi_value:.2f}</div>
+        <div style="background:{bmi_color};color:#FFFFFF;border-radius:999px;
+                    padding:7px 13px;font-size:13px;font-weight:700;">
+          {bmi_category_name}
+        </div>
+      </div>
+      <div style="color:#CBD5E1;font-size:14px;line-height:1.55;margin-top:8px;">
+        {bmi_description}
+      </div>
+      <div style="margin-top:25px;">
+        <div style="position:relative;height:13px;border-radius:999px;
+                    background:linear-gradient(to right,
+                    #60A5FA 0%,#60A5FA 14%,
+                    #10B981 14%,#10B981 40%,
+                    #F59E0B 40%,#F59E0B 60%,
+                    #EF4444 60%,#EF4444 100%);">
+          <div style="position:absolute;left:calc({bmi_marker_position:.2f}% - 2px);
+                      top:-6px;width:4px;height:25px;background:#FFFFFF;
+                      border:1px solid #081321;border-radius:4px;
+                      box-shadow:0 0 0 2px rgba(255,255,255,.18);"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;gap:8px;margin-top:10px;
+                    color:#94A3B8;font-size:11px;">
+          <span>Niedowaga</span><span>Masa prawidłowa</span>
+          <span>Nadwaga</span><span>Otyłość</span>
+        </div>
+        <div style="color:#64748B;font-size:11px;margin-top:8px;">
+          Zakres referencyjny BMI dla dorosłych: 18,5–24,9
+        </div>
+      </div>
+    </section>
+    """)
+
+    # Wskaźniki uzupełniające – BMI jest już wyróżnione w karcie HERO.
+    metric_cols = st.columns(3)
     dashboard_metrics = [
         ("MASA CIAŁA", f"{float(latest_measurement['weight']):.1f} kg", "weight", "kg"),
-        ("BMI", f"{float(latest_measurement['bmi']):.2f}", "bmi", "pkt"),
         ("WHtR", f"{float(latest_measurement['whtr']):.3f}", "whtr", "pkt"),
         ("WHR", f"{float(latest_measurement['whr']):.3f}", "whr", "pkt"),
     ]
@@ -1299,7 +1366,13 @@ if dashboard_history:
             if previous_measurement is not None:
                 difference = float(latest_measurement[field]) - float(previous_measurement[field])
                 delta = f"{difference:+.2f} {unit}" if field == "weight" else f"{difference:+.3f} {unit}"
-            st.metric(label, value, delta=delta, help="Zmiana względem poprzedniego zapisanego pomiaru." if delta else "Wykonaj kolejny pomiar, aby zobaczyć zmianę.")
+            st.metric(
+                label,
+                value,
+                delta=delta,
+                help="Zmiana względem poprzedniego zapisanego pomiaru." if delta
+                else "Wykonaj kolejny pomiar, aby zobaczyć zmianę."
+            )
 
     created_at = latest_measurement.get("created_at", "")
     if created_at:
