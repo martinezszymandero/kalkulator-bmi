@@ -621,6 +621,26 @@ h1, h2, h3, h4, h5, h6 {
     font-synthesis: none;
 }
 
+/* Preserve Streamlit's icon fonts: global Inter rules must not turn
+   Material Symbols ligatures (e.g. expander arrows) into visible text. */
+.material-symbols-rounded,
+.material-symbols-outlined,
+.material-symbols-sharp,
+.material-icons,
+.material-icons-outlined,
+.material-icons-round,
+.material-icons-sharp,
+.material-icons-two-tone,
+span[class*="material-symbols"],
+span[class*="material-icons"] {
+    font-family: "Material Symbols Rounded", "Material Symbols Outlined",
+                 "Material Icons", sans-serif !important;
+    font-weight:  normal !important;
+    font-style: normal !important;
+    font-feature-settings: "liga" !important;
+    -webkit-font-feature-settings: "liga" !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
