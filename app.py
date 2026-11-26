@@ -504,6 +504,18 @@ div.stFormSubmitButton > button[kind="primary"]:hover {
 }
 [data-testid="stAlert"] {
     border-radius: 12px;
+    color: #0B1728 !important;
+}
+[data-testid="stAlert"] p,
+[data-testid="stAlert"] span,
+[data-testid="stAlert"] div,
+[data-testid="stAlert"] label {
+    color: #0B1728 !important;
+}
+[data-testid="stAlert"] svg {
+    color: #0B1728 !important;
+    fill: none !important;
+    stroke: #0B1728 !important;
 }
 [data-testid="stTabs"] [data-baseweb="tab-list"] {
     gap: 8px;
