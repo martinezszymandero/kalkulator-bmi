@@ -450,10 +450,19 @@ div.stFormSubmitButton > button[kind="primary"]:hover {
     align-items: center;
     gap: 4px;
 }
+[data-testid="stMetricDelta"] {
+    font-weight: 700 !important;
+}
+[data-testid="stMetricDelta"] p,
+[data-testid="stMetricDelta"] span,
+[data-testid="stMetricDelta"] div {
+    font-weight: 700 !important;
+}
 [data-testid="stMetricDelta"] svg {
     color: #000000 !important;
     fill: none !important;
     stroke: #000000 !important;
+    stroke-width: 2.6px !important;
 }
 [data-testid="stMetricDelta"] svg path,
 [data-testid="stMetricDelta"] svg line,
